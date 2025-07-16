@@ -1,0 +1,51 @@
+package common
+
+import (
+	"encoding/json"
+	"log"
+	"net/http"
+)
+
+func Pong(writer http.ResponseWriter, request *http.Request) {
+	type parameters struct {
+		Message string
+	}
+
+	params := parameters{
+		Message: "pong",
+	}
+
+	JSONResponse(writer, http.StatusOK, params)
+}
+
+func JSONResponse(writer http.ResponseWriter, code int, payload interface{}) {
+	data, error := json.Marshal(payload)
+
+	if error != nil {
+		log.Printf("Failed to marshal JSON response: %v", payload)
+		writer.WriteHeader(500)
+
+		return
+	}
+
+	writer.Header().Add("Content-Type", "application/json")
+	writer.WriteHeader(code)
+	writer.Write(data)
+}
+
+func ErrorResponse(writer http.ResponseWriter, code int, message string) {
+	// Log to server on 5XX status codes.
+	if code > 499 {
+		log.Println("Responding with 5XX error:", message)
+	}
+
+	type errorResponse struct {
+		Error string `json:"error"`
+	}
+
+	errResponse := errorResponse{
+		Error: message,
+	}
+
+	JSONResponse(writer, code, errResponse)
+}
