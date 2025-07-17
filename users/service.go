@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/elorenzorodz/co-library/common"
 	"github.com/elorenzorodz/co-library/internal/database"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
@@ -92,5 +94,41 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 		return
 	}
 
-	common.JSONResponse(writer, http.StatusCreated, DatabaseUserToUserJSON(getUser))
+	newToken := jwt.NewWithClaims(
+		jwt.SigningMethodES256, 
+		jwt.MapClaims{ 
+			"email": getUser.Email, 
+	})
+
+	bytes, readFileError := os.ReadFile("private.pem")
+
+	if readFileError != nil {
+		fmt.Printf("Read file error %v", readFileError)
+		common.ErrorResponse(writer, http.StatusBadRequest, "Failed to login. Please try again in a few minutes")
+
+		return
+	}
+
+	key, parsePrivateKeyError := jwt.ParseECPrivateKeyFromPEM(bytes)
+
+	if parsePrivateKeyError != nil {
+		fmt.Printf("Parse error %v", parsePrivateKeyError)
+		common.ErrorResponse(writer, http.StatusBadRequest, "Failed to login. Please try again in a few minutes")
+
+		return
+	}
+
+	signedToken, signedStringError := newToken.SignedString(key)
+
+	if signedStringError != nil {
+		fmt.Printf("Signing error %v", signedStringError)
+		common.ErrorResponse(writer, http.StatusBadRequest, "Failed to login. Please try again in a few minutes")
+
+		return
+	}
+
+	userAuthorized := DatabaseUserToUserAuthorizedJSON(getUser)
+	userAuthorized.Token = signedToken
+
+	common.JSONResponse(writer, http.StatusCreated, userAuthorized)
 }

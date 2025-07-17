@@ -20,3 +20,8 @@ type User struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
+
+type UserAuthorized struct {
+	Email string `json:"email"`
+	Token string `json:"token"`
+}

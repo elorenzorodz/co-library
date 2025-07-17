@@ -16,6 +16,12 @@ func DatabaseUserToUserJSON(databaseUser database.User) User {
 	}
 }
 
+func DatabaseUserToUserAuthorizedJSON(databaseUser database.User) UserAuthorized {
+	return UserAuthorized{
+		Email: databaseUser.Email,
+	}
+}
+
 func HashPassword(password string) (string, error) {
 	bytes, hashPasswordError := bcrypt.GenerateFromPassword([]byte(password), 14)
 
