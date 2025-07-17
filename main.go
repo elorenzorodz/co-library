@@ -37,6 +37,7 @@ func main() {
 
 	// Users endpoints.
 	muxRouter.HandleFunc(apiVersion + "/user", userAPIConfig.CreateUser).Methods("POST")
+	muxRouter.HandleFunc(apiVersion + "/user/login", userAPIConfig.Login).Methods("POST")
 
 	http.Handle("/", muxRouter)
 

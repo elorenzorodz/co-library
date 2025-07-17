@@ -25,7 +25,7 @@ func (userAPIConfig *UserAPIConfig) CreateUser(writer http.ResponseWriter, reque
 	decoderError := decoder.Decode(&params)
 
 	if decoderError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error pasring JSON: %s", decoderError))
+		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error parsing JSON: %s", decoderError))
 
 		return
 	}
@@ -57,4 +57,40 @@ func (userAPIConfig *UserAPIConfig) CreateUser(writer http.ResponseWriter, reque
 	}
 
 	common.JSONResponse(writer, http.StatusCreated, DatabaseUserToUserJSON(newUser))
+}
+
+func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *http.Request) {
+	type parameters struct {
+		Email     string `json:"email"`
+		Password  string `json:"password"`
+	}
+
+	params := parameters{}
+
+	decoder := json.NewDecoder(request.Body)
+	decoderError := decoder.Decode(&params)
+
+	if decoderError != nil {
+		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error parsing JSON: %s", decoderError))
+
+		return
+	}
+
+	getUser, getUserError := userAPIConfig.DB.GetUserByEmail(request.Context(), params.Email)
+
+	if getUserError != nil {
+		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error parsing JSON: %s", getUserError))
+
+		return
+	}
+
+	verifyPasswordError := VerifyPassword(params.Password, getUser.Password)
+
+	if verifyPasswordError != nil {
+		common.ErrorResponse(writer, http.StatusBadRequest, "Incorrect email address or password")
+
+		return
+	}
+
+	common.JSONResponse(writer, http.StatusCreated, DatabaseUserToUserJSON(getUser))
 }
