@@ -30,12 +30,20 @@ func (userAPIConfig *UserAPIConfig) CreateUser(writer http.ResponseWriter, reque
 		return
 	}
 
+	hashedPassword, hashPasswordError := HashPassword(params.Password)
+
+	if hashPasswordError != nil {
+		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error creating user: %s", hashPasswordError))
+
+		return
+	}
+
 	createUserParams := database.CreateUserParams {
 		ID: uuid.New(),
 		FirstName: params.FirstName,
 		LastName: params.LastName,
 		Email: params.Email,
-		Password: params.Password,
+		Password: hashedPassword,
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
 	}
