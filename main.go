@@ -6,8 +6,11 @@ import (
 	"net/http"
 
 	"github.com/elorenzorodz/co-library/common"
+	"github.com/elorenzorodz/co-library/internal/database"
+	"github.com/elorenzorodz/co-library/users"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -16,11 +19,24 @@ func main() {
 	apiVersion := common.GetEnvVariable("API_VERSION")
 	apiVersion = fmt.Sprintf("/%s", apiVersion)
 
-	// dbConnectionString := common.GetDBConnectionSettings()
-	// dbConnection := openDBConnection(dbConnectionString)
+	dbConnectionString := common.GetDBConnectionSettings()
+	dbConnection := common.OpenDBConnection(dbConnectionString)
+
+	database := database.New(dbConnection)
+
+	apiConfig := common.APIConfig {
+		DB: database,
+	}
 
 	muxRouter := mux.NewRouter()
 	muxRouter.HandleFunc(apiVersion + "/ping", common.Pong).Methods("GET")
+
+	userAPIConfig := users.UserAPIConfig {
+		APIConfig: apiConfig,
+	}
+
+	// Users endpoints.
+	muxRouter.HandleFunc(apiVersion + "/user", userAPIConfig.CreateUser).Methods("POST")
 
 	http.Handle("/", muxRouter)
 
