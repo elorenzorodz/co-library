@@ -4,9 +4,12 @@ Co-library is a simple API project that act like a library management system but
 
 ## Requirements
 
+- PostgreSQL
 - [github.com/gorilla/mux](github.com/gorilla/mux)
 - [github.com/joho/godotenv](github.com/joho/godotenv)
 - [github.com/lib/pq](github.com/lib/pq)
 - [github.com/google/uuid](github.com/google/uuid)
 - [github.com/golang-jwt/jwt/v5](github.com/golang-jwt/jwt/v5)
 - [golang.org/x/crypto](golang.org/x/crypto)
+- [https://github.com/sqlc-dev/sqlc](https://github.com/sqlc-dev/sqlc)
+- [https://github.com/pressly/goose](https://github.com/pressly/goose)
