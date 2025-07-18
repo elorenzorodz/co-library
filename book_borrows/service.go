@@ -59,3 +59,24 @@ func (bookBorrowAPIConfig *BookBorrowAPIConfig) IssueBook(writer http.ResponseWr
 
 	common.JSONResponse(writer, http.StatusCreated, DatabaseBookBorrowToBookBorrowJSON(issueBook))
 }
+
+func (bookBorrowAPIConfig *BookBorrowAPIConfig) ReturnBook(writer http.ResponseWriter, request *http.Request, userId uuid.UUID) {
+	vars := mux.Vars(request)
+	bookBorrowId, parseBookBorrowIdError := uuid.Parse(vars["id"])
+
+	if parseBookBorrowIdError != nil {
+		common.ErrorResponse(writer, http.StatusBadRequest, "Invalid book borrow id")
+
+		return
+	}
+
+	returnBook, returnBookError := bookBorrowAPIConfig.DB.ReturnBook(request.Context(), bookBorrowId)
+
+	if returnBookError != nil {
+		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error updating book borrow: %s", returnBookError))
+
+		return
+	}
+
+	common.JSONResponse(writer, http.StatusOK, DatabaseBookBorrowToBookBorrowJSON(returnBook))
+}

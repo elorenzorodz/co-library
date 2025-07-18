@@ -59,6 +59,7 @@ func main() {
 	}
 
 	muxRouter.HandleFunc(apiVersion + "/books/issue/{id}", bookBorrowAPIConfig.Authorization(bookBorrowAPIConfig.IssueBook)).Methods("POST")
+	muxRouter.HandleFunc(apiVersion + "/books/return/{id}", bookBorrowAPIConfig.Authorization(bookBorrowAPIConfig.ReturnBook)).Methods("POST")
 
 	http.Handle("/", muxRouter)
 
