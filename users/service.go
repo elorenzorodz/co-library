@@ -116,6 +116,7 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 		jwt.SigningMethodES256, 
 		jwt.MapClaims{ 
 			"email": getUser.Email, 
+			"exp": time.Now().Add(time.Minute * 1).Unix(),
 	})
 
 	bytes, readFileError := os.ReadFile("private.pem")

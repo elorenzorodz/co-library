@@ -2,8 +2,10 @@ package common
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
+	"strings"
 )
 
 func Pong(writer http.ResponseWriter, request *http.Request) {
@@ -16,6 +18,26 @@ func Pong(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	JSONResponse(writer, http.StatusOK, params)
+}
+
+func GetJWT(headers http.Header) (string, error){
+	authorizationHeader := headers.Get("Authorization")
+
+	if authorizationHeader == "" {
+		return "", errors.New("no authentication info found")
+	}
+
+	authorizationHeaderValues := strings.Split(authorizationHeader, " ")
+
+	if len(authorizationHeaderValues) != 2 {
+		return "", errors.New("malformed authentication header")
+	}
+
+	if authorizationHeaderValues[0] != "Bearer" {
+		return "", errors.New("malformed first part of authentication header")
+	}
+
+	return authorizationHeaderValues[1], nil
 }
 
 func JSONResponse(writer http.ResponseWriter, code int, payload interface{}) {

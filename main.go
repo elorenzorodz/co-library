@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/elorenzorodz/co-library/books"
 	"github.com/elorenzorodz/co-library/common"
 	"github.com/elorenzorodz/co-library/internal/database"
 	"github.com/elorenzorodz/co-library/users"
@@ -38,6 +39,13 @@ func main() {
 	// Users endpoints.
 	muxRouter.HandleFunc(apiVersion + "/user", userAPIConfig.CreateUser).Methods("POST")
 	muxRouter.HandleFunc(apiVersion + "/user/login", userAPIConfig.Login).Methods("POST")
+
+	bookAPIConfig := books.BookAPIConfig {
+		APIConfig: apiConfig,
+	}
+
+	// Books endpoints.
+	muxRouter.HandleFunc(apiVersion + "/book", bookAPIConfig.Authorization(bookAPIConfig.CreateBook)).Methods("POST")
 
 	http.Handle("/", muxRouter)
 

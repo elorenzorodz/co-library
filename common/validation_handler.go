@@ -1,9 +1,13 @@
 package common
 
 import (
+	"errors"
 	"fmt"
+	"os"
 	"regexp"
 	"unicode"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func IsEmailValid(email string) bool {
@@ -37,4 +41,60 @@ func IsPasswordValid(password string) bool {
 	}
 
 	return hasUpper && hasLower && hasDigit && !hasSpace
+}
+
+func ValidateJWTAndGetEmailClaim(signedToken string) (string, error) {
+	publicBytes, publicKeyError := os.ReadFile("public.pem")
+
+	if publicKeyError != nil {
+		fmt.Printf("Read public key error: %v", publicKeyError)
+
+		return "", fmt.Errorf("read public key error: %v", publicKeyError)
+	}
+
+	publicKey, publicKeyParseError := jwt.ParseECPublicKeyFromPEM(publicBytes)
+
+	if publicKeyParseError != nil {
+		fmt.Printf("Parse public key error: %v", publicKeyParseError)
+
+		return "", fmt.Errorf("parse public key error: %v", publicKeyParseError)
+	}
+
+	parsedToken, parsedTokenError := jwt.Parse(signedToken, func(token *jwt.Token) (interface{}, error) {
+		_, ok := token.Method.(*jwt.SigningMethodECDSA)
+		
+		if !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+
+		return publicKey, nil
+	})
+
+	if parsedTokenError != nil {
+		fmt.Printf("Token parse error: %v", parsedTokenError)
+
+		return "", fmt.Errorf("token parse error: %v", parsedTokenError)
+	}
+
+	if claims, ok := parsedToken.Claims.(jwt.MapClaims); ok && parsedToken.Valid {
+		emailClaim, exists := claims["email"]
+
+		if !exists {
+			fmt.Println("Email claim not found")
+
+			return "", errors.New("invalid token")
+		}
+
+		email, ok := emailClaim.(string)
+
+		if !ok {
+			fmt.Println("Email claim is not a string")
+
+			return "", errors.New("invalid token")
+		}
+
+		return email, nil
+	}
+
+	return "", errors.New("invalid token")
 }
