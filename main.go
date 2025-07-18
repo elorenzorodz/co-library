@@ -47,6 +47,7 @@ func main() {
 	// Books endpoints.
 	muxRouter.HandleFunc(apiVersion + "/books", bookAPIConfig.Authorization(bookAPIConfig.CreateBook)).Methods("POST")
 	muxRouter.HandleFunc(apiVersion + "/books", bookAPIConfig.Authorization(bookAPIConfig.GetBooks)).Methods("GET")
+	muxRouter.HandleFunc(apiVersion + "/books/{id}", bookAPIConfig.Authorization(bookAPIConfig.GetBook)).Methods("GET")
 
 	http.Handle("/", muxRouter)
 

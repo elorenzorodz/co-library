@@ -9,6 +9,7 @@ import (
 	"github.com/elorenzorodz/co-library/common"
 	"github.com/elorenzorodz/co-library/internal/database"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 )
 
 func (bookAPIConfig *BookAPIConfig) CreateBook(writer http.ResponseWriter, request *http.Request, userId uuid.UUID) {
@@ -52,10 +53,36 @@ func (bookAPIConfig *BookAPIConfig) GetBooks(writer http.ResponseWriter, request
 	getBooks, getBooksError := bookAPIConfig.DB.GetBooks(request.Context(), userId)
 
 	if getBooksError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error creating book: %s", getBooksError))
+		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error getting books: %s", getBooksError))
 
 		return
 	}
 
 	common.JSONResponse(writer, http.StatusCreated, DatabaseBooksToBooksJSON(getBooks))
+}
+
+func (bookAPIConfig *BookAPIConfig) GetBook(writer http.ResponseWriter, request *http.Request, userId uuid.UUID) {
+	vars := mux.Vars(request)
+	bookId, parseBookIdError := uuid.Parse(vars["id"])
+
+	if parseBookIdError != nil {
+		common.ErrorResponse(writer, http.StatusBadRequest, "Invalid book id")
+
+		return
+	}
+
+	getBookParams := database.GetBookParams{
+		ID: bookId,
+		UserID: userId,
+	}
+
+	getBook, getBookError := bookAPIConfig.DB.GetBook(request.Context(), getBookParams)
+
+	if getBookError != nil {
+		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error getting book: %s", getBookError))
+
+		return
+	}
+
+	common.JSONResponse(writer, http.StatusCreated, DatabaseBookToBookJSON(getBook))
 }

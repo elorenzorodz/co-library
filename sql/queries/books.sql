@@ -5,3 +5,6 @@ RETURNING id, title, author, created_at, updated_at, user_id;
 
 -- name: GetBooks :many
 SELECT * FROM books WHERE user_id = $1;
+
+-- name: GetBook :one
+SELECT * FROM books WHERE user_id = $1 AND id = $2;
