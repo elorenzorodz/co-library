@@ -52,7 +52,6 @@ func main() {
 	muxRouter.HandleFunc(apiVersion + "/books/{id}", bookAPIConfig.Authorization(bookAPIConfig.GetBook)).Methods("GET")
 	muxRouter.HandleFunc(apiVersion + "/books/{id}", bookAPIConfig.Authorization(bookAPIConfig.UpdateBook)).Methods("POST")
 	muxRouter.HandleFunc(apiVersion + "/books/{id}", bookAPIConfig.Authorization(bookAPIConfig.DeleteBook)).Methods("DELETE")
-<<<<<<< HEAD
 
 	// Book borrows endpoints.
 	bookBorrowAPIConfig := book_borrows.BookBorrowAPIConfig {
@@ -60,8 +59,6 @@ func main() {
 	}
 
 	muxRouter.HandleFunc(apiVersion + "/books/issue/{id}", bookBorrowAPIConfig.Authorization(bookBorrowAPIConfig.IssueBook)).Methods("POST")
-=======
->>>>>>> 35a4ea8e5f735c1ec6ad1ad87b5471693be5d0e9
 
 	http.Handle("/", muxRouter)
 
