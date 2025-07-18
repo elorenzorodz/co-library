@@ -162,3 +162,24 @@ func (bookAPIConfig *BookAPIConfig) BrowseBooks(writer http.ResponseWriter, requ
 
 	common.JSONResponse(writer, http.StatusOK, DatabaseBooksToBooksJSON(browseBooks))
 }
+
+func (bookAPIConfig *BookAPIConfig) BrowseBooksByUserID(writer http.ResponseWriter, request *http.Request, userId uuid.UUID) {
+	vars := mux.Vars(request)
+	userId, parseUserIdError := uuid.Parse(vars["id"])
+
+	if parseUserIdError != nil {
+		common.ErrorResponse(writer, http.StatusBadRequest, "Invalid user id")
+
+		return
+	}
+
+	browseBooks, getBooksError := bookAPIConfig.DB.GetBooks(request.Context(), userId)
+
+	if getBooksError != nil {
+		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error getting books: %s", getBooksError))
+
+		return
+	}
+
+	common.JSONResponse(writer, http.StatusOK, DatabaseBooksToBooksJSON(browseBooks))
+}

@@ -49,6 +49,7 @@ func main() {
 	muxRouter.HandleFunc(apiVersion + "/books", bookAPIConfig.Authorization(bookAPIConfig.CreateBook)).Methods("POST")
 	muxRouter.HandleFunc(apiVersion + "/books", bookAPIConfig.Authorization(bookAPIConfig.GetBooks)).Methods("GET")
 	muxRouter.HandleFunc(apiVersion + "/books/browse", bookAPIConfig.Authorization(bookAPIConfig.BrowseBooks)).Methods("GET")
+	muxRouter.HandleFunc(apiVersion + "/books/browse/{id}", bookAPIConfig.Authorization(bookAPIConfig.BrowseBooksByUserID)).Methods("GET")
 	muxRouter.HandleFunc(apiVersion + "/books/{id}", bookAPIConfig.Authorization(bookAPIConfig.GetBook)).Methods("GET")
 	muxRouter.HandleFunc(apiVersion + "/books/{id}", bookAPIConfig.Authorization(bookAPIConfig.UpdateBook)).Methods("POST")
 	muxRouter.HandleFunc(apiVersion + "/books/{id}", bookAPIConfig.Authorization(bookAPIConfig.DeleteBook)).Methods("DELETE")
