@@ -32,6 +32,24 @@ func (userAPIConfig *UserAPIConfig) CreateUser(writer http.ResponseWriter, reque
 		return
 	}
 
+	// Validate email.
+	isEmailValid := common.IsEmailValid(params.Email)
+
+	if !isEmailValid {
+		common.ErrorResponse(writer, http.StatusBadRequest, "Error creating user: Invalid email address")
+
+		return
+	}
+
+	// Validate password.
+	isPasswordValid := common.IsPasswordValid(params.Password)
+
+	if !isPasswordValid {
+		common.ErrorResponse(writer, http.StatusBadRequest, "Error creating user: Invalid password. Password must contain at least 1 upper case letter, 1 lower case letter, 1 digit and must be 8 to 15 characters long.")
+
+		return
+	}
+
 	hashedPassword, hashPasswordError := HashPassword(params.Password)
 
 	if hashPasswordError != nil {
