@@ -20,4 +20,3 @@ DELETE FROM books WHERE id = $1 AND user_id = $2;
 
 -- name: BrowseBooks :many
 SELECT * FROM books;
-DELETE FROM books WHERE id = $1 AND user_id = $2;
