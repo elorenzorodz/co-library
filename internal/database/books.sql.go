@@ -48,6 +48,20 @@ func (q *Queries) CreateBook(ctx context.Context, arg CreateBookParams) (Book, e
 	return i, err
 }
 
+const deleteBook = `-- name: DeleteBook :exec
+DELETE FROM books WHERE id = $1 AND user_id = $2
+`
+
+type DeleteBookParams struct {
+	ID     uuid.UUID
+	UserID uuid.UUID
+}
+
+func (q *Queries) DeleteBook(ctx context.Context, arg DeleteBookParams) error {
+	_, err := q.db.ExecContext(ctx, deleteBook, arg.ID, arg.UserID)
+	return err
+}
+
 const getBook = `-- name: GetBook :one
 SELECT id, title, author, created_at, updated_at, user_id FROM books WHERE user_id = $1 AND id = $2
 `

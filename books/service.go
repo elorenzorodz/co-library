@@ -58,7 +58,7 @@ func (bookAPIConfig *BookAPIConfig) GetBooks(writer http.ResponseWriter, request
 		return
 	}
 
-	common.JSONResponse(writer, http.StatusCreated, DatabaseBooksToBooksJSON(getBooks))
+	common.JSONResponse(writer, http.StatusOK, DatabaseBooksToBooksJSON(getBooks))
 }
 
 func (bookAPIConfig *BookAPIConfig) GetBook(writer http.ResponseWriter, request *http.Request, userId uuid.UUID) {
@@ -84,7 +84,7 @@ func (bookAPIConfig *BookAPIConfig) GetBook(writer http.ResponseWriter, request 
 		return
 	}
 
-	common.JSONResponse(writer, http.StatusCreated, DatabaseBookToBookJSON(getBook))
+	common.JSONResponse(writer, http.StatusOK, DatabaseBookToBookJSON(getBook))
 }
 
 func (bookAPIConfig *BookAPIConfig) UpdateBook(writer http.ResponseWriter, request *http.Request, userId uuid.UUID) {
@@ -127,5 +127,31 @@ func (bookAPIConfig *BookAPIConfig) UpdateBook(writer http.ResponseWriter, reque
 		return
 	}
 
-	common.JSONResponse(writer, http.StatusCreated, DatabaseBookToBookJSON(updateBook))
+	common.JSONResponse(writer, http.StatusOK, DatabaseBookToBookJSON(updateBook))
+}
+
+func (bookAPIConfig *BookAPIConfig) DeleteBook(writer http.ResponseWriter, request *http.Request, userId uuid.UUID) {
+	vars := mux.Vars(request)
+	bookId, parseBookIdError := uuid.Parse(vars["id"])
+
+	if parseBookIdError != nil {
+		common.ErrorResponse(writer, http.StatusBadRequest, "Invalid book id")
+
+		return
+	}
+
+	deleteBookParams := database.DeleteBookParams{
+		ID: bookId,
+		UserID: userId,
+	}
+
+	deleteBookError := bookAPIConfig.DB.DeleteBook(request.Context(), deleteBookParams)
+
+	if deleteBookError != nil {
+		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error deleting book: %s", deleteBookError))
+
+		return
+	}
+
+	common.JSONResponse(writer, http.StatusOK, "Book successfully deleted")
 }

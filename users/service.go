@@ -149,5 +149,5 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 	userAuthorized := DatabaseUserToUserAuthorizedJSON(getUser)
 	userAuthorized.Token = signedToken
 
-	common.JSONResponse(writer, http.StatusCreated, userAuthorized)
+	common.JSONResponse(writer, http.StatusOK, userAuthorized)
 }

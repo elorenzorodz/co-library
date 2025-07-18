@@ -14,3 +14,6 @@ UPDATE books
 SET title = $1, author = $2, updated_at = NOW() 
 WHERE id = $3
 RETURNING id, title, author, created_at, updated_at, user_id;
+
+-- name: DeleteBook :exec
+DELETE FROM books WHERE id = $1 AND user_id = $2;
