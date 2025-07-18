@@ -16,7 +16,11 @@ WHERE id = $3
 RETURNING id, title, author, created_at, updated_at, user_id;
 
 -- name: DeleteBook :exec
+<<<<<<< HEAD
 DELETE FROM books WHERE id = $1 AND user_id = $2;
 
 -- name: BrowseBooks :many
 SELECT * FROM books;
+=======
+DELETE FROM books WHERE id = $1 AND user_id = $2;
+>>>>>>> 35a4ea8e5f735c1ec6ad1ad87b5471693be5d0e9

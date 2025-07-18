@@ -149,6 +149,7 @@ func (bookAPIConfig *BookAPIConfig) DeleteBook(writer http.ResponseWriter, reque
 	}
 
 	common.JSONResponse(writer, http.StatusOK, "Book successfully deleted")
+<<<<<<< HEAD
 }
 
 func (bookAPIConfig *BookAPIConfig) BrowseBooks(writer http.ResponseWriter, request *http.Request, userId uuid.UUID) {
@@ -161,4 +162,6 @@ func (bookAPIConfig *BookAPIConfig) BrowseBooks(writer http.ResponseWriter, requ
 	}
 
 	common.JSONResponse(writer, http.StatusOK, DatabaseBooksToBooksJSON(browseBooks))
+=======
+>>>>>>> 35a4ea8e5f735c1ec6ad1ad87b5471693be5d0e9
 }
