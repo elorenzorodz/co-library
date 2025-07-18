@@ -112,6 +112,10 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 		return
 	}
 
+	// Private and public keys used the following settings for this project:
+	// Curve: SECG secp256r1 / X9.62 prime256v1 / NIST P-256
+	// Output Type: PEM text
+	// Format: PKCS#8
 	newToken := jwt.NewWithClaims(
 		jwt.SigningMethodES256, 
 		jwt.MapClaims{ 
