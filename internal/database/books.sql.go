@@ -104,3 +104,30 @@ func (q *Queries) GetBooks(ctx context.Context, userID uuid.UUID) ([]Book, error
 	}
 	return items, nil
 }
+
+const updateBook = `-- name: UpdateBook :one
+UPDATE books 
+SET title = $1, author = $2, updated_at = NOW() 
+WHERE id = $3
+RETURNING id, title, author, created_at, updated_at, user_id
+`
+
+type UpdateBookParams struct {
+	Title  string
+	Author string
+	ID     uuid.UUID
+}
+
+func (q *Queries) UpdateBook(ctx context.Context, arg UpdateBookParams) (Book, error) {
+	row := q.db.QueryRowContext(ctx, updateBook, arg.Title, arg.Author, arg.ID)
+	var i Book
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Author,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserID,
+	)
+	return i, err
+}
