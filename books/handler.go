@@ -20,6 +20,16 @@ func DatabaseBookToBookJSON(databaseBook database.Book) Book {
 	}
 }
 
+func DatabaseBooksToBooksJSON(databaseBooks []database.Book) []Book {
+	books := []Book{}
+
+	for _, databaseBook := range databaseBooks {
+		books = append(books, DatabaseBookToBookJSON(databaseBook))
+	}
+
+	return books
+}
+
 type BookAuthHandler func(http.ResponseWriter, *http.Request, uuid.UUID)
 
 func (bookAPIConfig *BookAPIConfig) Authorization(handler BookAuthHandler) http.HandlerFunc {

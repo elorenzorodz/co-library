@@ -47,3 +47,15 @@ func (bookAPIConfig *BookAPIConfig) CreateBook(writer http.ResponseWriter, reque
 
 	common.JSONResponse(writer, http.StatusCreated, DatabaseBookToBookJSON(newBook))
 }
+
+func (bookAPIConfig *BookAPIConfig) GetBooks(writer http.ResponseWriter, request *http.Request, userId uuid.UUID) {
+	getBooks, getBooksError := bookAPIConfig.DB.GetBooks(request.Context(), userId)
+
+	if getBooksError != nil {
+		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error creating book: %s", getBooksError))
+
+		return
+	}
+
+	common.JSONResponse(writer, http.StatusCreated, DatabaseBooksToBooksJSON(getBooks))
+}

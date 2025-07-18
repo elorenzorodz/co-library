@@ -47,3 +47,37 @@ func (q *Queries) CreateBook(ctx context.Context, arg CreateBookParams) (Book, e
 	)
 	return i, err
 }
+
+const getBooks = `-- name: GetBooks :many
+SELECT id, title, author, created_at, updated_at, user_id FROM books WHERE user_id = $1
+`
+
+func (q *Queries) GetBooks(ctx context.Context, userID uuid.UUID) ([]Book, error) {
+	rows, err := q.db.QueryContext(ctx, getBooks, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Book
+	for rows.Next() {
+		var i Book
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Author,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
