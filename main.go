@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	godotenv.Load()
+	godotenv.Load(".env.dev")
 
 	apiVersion := common.GetEnvVariable("API_VERSION")
 	apiVersion = fmt.Sprintf("/%s", apiVersion)

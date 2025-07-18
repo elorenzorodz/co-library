@@ -1,5 +1,5 @@
 out
-.env
+.env.dev
 *.exe
 go.mod
 go.sum
