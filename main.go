@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/elorenzorodz/co-library/book_borrows"
 	"github.com/elorenzorodz/co-library/books"
 	"github.com/elorenzorodz/co-library/common"
 	"github.com/elorenzorodz/co-library/internal/database"
@@ -32,23 +33,32 @@ func main() {
 	muxRouter := mux.NewRouter()
 	muxRouter.HandleFunc(apiVersion + "/ping", common.Pong).Methods("GET")
 
+	// Users endpoints.
 	userAPIConfig := users.UserAPIConfig {
 		APIConfig: apiConfig,
 	}
 
-	// Users endpoints.
 	muxRouter.HandleFunc(apiVersion + "/user", userAPIConfig.CreateUser).Methods("POST")
 	muxRouter.HandleFunc(apiVersion + "/user/login", userAPIConfig.Login).Methods("POST")
 
+	// Books endpoints.
 	bookAPIConfig := books.BookAPIConfig {
 		APIConfig: apiConfig,
 	}
 
-	// Books endpoints.
 	muxRouter.HandleFunc(apiVersion + "/books", bookAPIConfig.Authorization(bookAPIConfig.CreateBook)).Methods("POST")
 	muxRouter.HandleFunc(apiVersion + "/books", bookAPIConfig.Authorization(bookAPIConfig.GetBooks)).Methods("GET")
+	muxRouter.HandleFunc(apiVersion + "/books/browse", bookAPIConfig.Authorization(bookAPIConfig.BrowseBooks)).Methods("GET")
 	muxRouter.HandleFunc(apiVersion + "/books/{id}", bookAPIConfig.Authorization(bookAPIConfig.GetBook)).Methods("GET")
 	muxRouter.HandleFunc(apiVersion + "/books/{id}", bookAPIConfig.Authorization(bookAPIConfig.UpdateBook)).Methods("POST")
+	muxRouter.HandleFunc(apiVersion + "/books/{id}", bookAPIConfig.Authorization(bookAPIConfig.DeleteBook)).Methods("DELETE")
+
+	// Book borrows endpoints.
+	bookBorrowAPIConfig := book_borrows.BookBorrowAPIConfig {
+		APIConfig: apiConfig,
+	}
+
+	muxRouter.HandleFunc(apiVersion + "/books/issue/{id}", bookBorrowAPIConfig.Authorization(bookBorrowAPIConfig.IssueBook)).Methods("POST")
 
 	http.Handle("/", muxRouter)
 

@@ -12,6 +12,40 @@ import (
 	"github.com/google/uuid"
 )
 
+const browseBooks = `-- name: BrowseBooks :many
+SELECT id, title, author, created_at, updated_at, user_id FROM books
+`
+
+func (q *Queries) BrowseBooks(ctx context.Context) ([]Book, error) {
+	rows, err := q.db.QueryContext(ctx, browseBooks)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Book
+	for rows.Next() {
+		var i Book
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Author,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const createBook = `-- name: CreateBook :one
 INSERT INTO books (id, title, author, created_at, updated_at, user_id)
 VALUES ($1, $2, $3, $4, $5, $6)
@@ -48,17 +82,26 @@ func (q *Queries) CreateBook(ctx context.Context, arg CreateBookParams) (Book, e
 	return i, err
 }
 
-const getBook = `-- name: GetBook :one
-SELECT id, title, author, created_at, updated_at, user_id FROM books WHERE user_id = $1 AND id = $2
+const deleteBook = `-- name: DeleteBook :exec
+DELETE FROM books WHERE id = $1 AND user_id = $2
 `
 
-type GetBookParams struct {
-	UserID uuid.UUID
+type DeleteBookParams struct {
 	ID     uuid.UUID
+	UserID uuid.UUID
 }
 
-func (q *Queries) GetBook(ctx context.Context, arg GetBookParams) (Book, error) {
-	row := q.db.QueryRowContext(ctx, getBook, arg.UserID, arg.ID)
+func (q *Queries) DeleteBook(ctx context.Context, arg DeleteBookParams) error {
+	_, err := q.db.ExecContext(ctx, deleteBook, arg.ID, arg.UserID)
+	return err
+}
+
+const getBook = `-- name: GetBook :one
+SELECT id, title, author, created_at, updated_at, user_id FROM books WHERE id = $1
+`
+
+func (q *Queries) GetBook(ctx context.Context, id uuid.UUID) (Book, error) {
+	row := q.db.QueryRowContext(ctx, getBook, id)
 	var i Book
 	err := row.Scan(
 		&i.ID,

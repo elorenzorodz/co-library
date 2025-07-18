@@ -5,6 +5,7 @@
 package database
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,6 +18,16 @@ type Book struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	UserID    uuid.UUID
+}
+
+type BookBorrow struct {
+	ID         uuid.UUID
+	IssuedAt   time.Time
+	ReturnedAt sql.NullTime
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	BookID     uuid.UUID
+	BorrowerID uuid.UUID
 }
 
 type User struct {
