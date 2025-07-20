@@ -47,31 +47,31 @@ func main() {
 		APIConfig: apiConfig,
 	}
 
-	muxRouter.HandleFunc(apiVersion + "/books", bookAPIConfig.Authorization(bookAPIConfig.CreateBook)).Methods("POST")
-	muxRouter.HandleFunc(apiVersion + "/books", bookAPIConfig.Authorization(bookAPIConfig.GetBooks)).Methods("GET")
-	muxRouter.HandleFunc(apiVersion + "/books/browse", bookAPIConfig.Authorization(bookAPIConfig.BrowseBooks)).Methods("GET")
-	muxRouter.HandleFunc(apiVersion + "/books/browse/{id}", bookAPIConfig.Authorization(bookAPIConfig.BrowseBooksByUserID)).Methods("GET")
-	muxRouter.HandleFunc(apiVersion + "/books/{id}", bookAPIConfig.Authorization(bookAPIConfig.GetBook)).Methods("GET")
-	muxRouter.HandleFunc(apiVersion + "/books/{id}", bookAPIConfig.Authorization(bookAPIConfig.UpdateBook)).Methods("POST")
-	muxRouter.HandleFunc(apiVersion + "/books/{id}", bookAPIConfig.Authorization(bookAPIConfig.DeleteBook)).Methods("DELETE")
+	muxRouter.HandleFunc(apiVersion + "/books", apiConfig.Authorization(bookAPIConfig.CreateBook)).Methods("POST")
+	muxRouter.HandleFunc(apiVersion + "/books", apiConfig.Authorization(bookAPIConfig.GetBooks)).Methods("GET")
+	muxRouter.HandleFunc(apiVersion + "/books/browse", apiConfig.Authorization(bookAPIConfig.BrowseBooks)).Methods("GET")
+	muxRouter.HandleFunc(apiVersion + "/books/browse/{id}", apiConfig.Authorization(bookAPIConfig.BrowseBooksByUserID)).Methods("GET")
+	muxRouter.HandleFunc(apiVersion + "/books/{id}", apiConfig.Authorization(bookAPIConfig.GetBook)).Methods("GET")
+	muxRouter.HandleFunc(apiVersion + "/books/{id}", apiConfig.Authorization(bookAPIConfig.UpdateBook)).Methods("POST")
+	muxRouter.HandleFunc(apiVersion + "/books/{id}", apiConfig.Authorization(bookAPIConfig.DeleteBook)).Methods("DELETE")
 
 	// Book borrows endpoints.
 	bookBorrowAPIConfig := book_borrows.BookBorrowAPIConfig {
 		APIConfig: apiConfig,
 	}
 
-	muxRouter.HandleFunc(apiVersion + "/books/issue/{id}", bookBorrowAPIConfig.Authorization(bookBorrowAPIConfig.IssueBook)).Methods("POST")
-	muxRouter.HandleFunc(apiVersion + "/books/return/{id}", bookBorrowAPIConfig.Authorization(bookBorrowAPIConfig.ReturnBook)).Methods("POST")
+	muxRouter.HandleFunc(apiVersion + "/books/issue/{id}", apiConfig.Authorization(bookBorrowAPIConfig.IssueBook)).Methods("POST")
+	muxRouter.HandleFunc(apiVersion + "/books/return/{id}", apiConfig.Authorization(bookBorrowAPIConfig.ReturnBook)).Methods("POST")
 
 	// User subscrbers endpoints.
 	userSubscriberAPIConfig := user_subscribers.UserSubscriberAPIConfig {
 		APIConfig: apiConfig,
 	}
 
-	muxRouter.HandleFunc(apiVersion + "/users/subscribe/{user_id}", userSubscriberAPIConfig.Authorization(userSubscriberAPIConfig.CreateUserSubscriber)).Methods("POST")
-	muxRouter.HandleFunc(apiVersion + "/users/unsubscribe/{user_id}", userSubscriberAPIConfig.Authorization(userSubscriberAPIConfig.DeleteUserSubscriber)).Methods("DELETE")
-	muxRouter.HandleFunc(apiVersion + "/users/subscribers", userSubscriberAPIConfig.Authorization(userSubscriberAPIConfig.GetUserSubscribers)).Methods("GET")
-	muxRouter.HandleFunc(apiVersion + "/users/subscriptions", userSubscriberAPIConfig.Authorization(userSubscriberAPIConfig.GetUserSubscriptions)).Methods("GET")
+	muxRouter.HandleFunc(apiVersion + "/users/subscribe/{user_id}", apiConfig.Authorization(userSubscriberAPIConfig.CreateUserSubscriber)).Methods("POST")
+	muxRouter.HandleFunc(apiVersion + "/users/unsubscribe/{user_id}", apiConfig.Authorization(userSubscriberAPIConfig.DeleteUserSubscriber)).Methods("DELETE")
+	muxRouter.HandleFunc(apiVersion + "/users/subscribers", apiConfig.Authorization(userSubscriberAPIConfig.GetUserSubscribers)).Methods("GET")
+	muxRouter.HandleFunc(apiVersion + "/users/subscriptions", apiConfig.Authorization(userSubscriberAPIConfig.GetUserSubscriptions)).Methods("GET")
 
 	http.Handle("/", muxRouter)
 
