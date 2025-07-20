@@ -5,3 +5,4 @@ go.mod
 go.sum
 vendor/
 *.pem
+sqlc-dev.yaml

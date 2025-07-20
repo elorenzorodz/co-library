@@ -4,7 +4,7 @@ sql:
     queries: "/sql/queries"
     engine: "postgresql"
     database:
-      uri: "postgres://postgres:root@localhost:5432/colibrary"
+      uri: ""
     gen:
       go:
         out: "internal/database"
