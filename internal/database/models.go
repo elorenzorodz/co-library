@@ -39,3 +39,11 @@ type User struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+type UserSubscriber struct {
+	ID           uuid.UUID
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	UserID       uuid.UUID
+	SubscriberID uuid.UUID
+}

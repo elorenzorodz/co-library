@@ -9,6 +9,7 @@ import (
 	"github.com/elorenzorodz/co-library/books"
 	"github.com/elorenzorodz/co-library/common"
 	"github.com/elorenzorodz/co-library/internal/database"
+	"github.com/elorenzorodz/co-library/user_subscribers"
 	"github.com/elorenzorodz/co-library/users"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -38,7 +39,7 @@ func main() {
 		APIConfig: apiConfig,
 	}
 
-	muxRouter.HandleFunc(apiVersion + "/user", userAPIConfig.CreateUser).Methods("POST")
+	muxRouter.HandleFunc(apiVersion + "/user/register", userAPIConfig.CreateUser).Methods("POST")
 	muxRouter.HandleFunc(apiVersion + "/user/login", userAPIConfig.Login).Methods("POST")
 
 	// Books endpoints.
@@ -61,6 +62,13 @@ func main() {
 
 	muxRouter.HandleFunc(apiVersion + "/books/issue/{id}", bookBorrowAPIConfig.Authorization(bookBorrowAPIConfig.IssueBook)).Methods("POST")
 	muxRouter.HandleFunc(apiVersion + "/books/return/{id}", bookBorrowAPIConfig.Authorization(bookBorrowAPIConfig.ReturnBook)).Methods("POST")
+
+	// User subscrbers endpoints.
+	userSubscriberAPIConfig := user_subscribers.UserSubscriberAPIConfig {
+		APIConfig: apiConfig,
+	}
+
+	muxRouter.HandleFunc(apiVersion + "/users/subscribe/{user_id}", userSubscriberAPIConfig.Authorization(userSubscriberAPIConfig.CreateUserSubscriber)).Methods("POST")
 
 	http.Handle("/", muxRouter)
 
