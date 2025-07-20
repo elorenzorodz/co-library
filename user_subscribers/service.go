@@ -74,3 +74,15 @@ func (userSubscriberAPIConfig *UserSubscriberAPIConfig) GetUserSubscribers(write
 
 	common.JSONResponse(writer, http.StatusOK, DatabaseUserSubscribersToUserSubscribersJSON(userSubscribers))
 }
+
+func (userSubscriberAPIConfig *UserSubscriberAPIConfig) GetUserSubscriptions(writer http.ResponseWriter, request *http.Request, subscriberId uuid.UUID) {
+	userSubscriptions, getUserSubscriptionsError := userSubscriberAPIConfig.DB.GetUserSubscriptions(request.Context(), subscriberId)
+
+	if getUserSubscriptionsError != nil {
+		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error getting subscriptions: %s", getUserSubscriptionsError))
+
+		return
+	}
+
+	common.JSONResponse(writer, http.StatusOK, DatabaseUserSubscribersToUserSubscribersJSON(userSubscriptions))
+}

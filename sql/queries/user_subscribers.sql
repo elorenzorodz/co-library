@@ -8,3 +8,6 @@ DELETE FROM user_subscribers WHERE subscriber_id = $1 AND user_id = $2;
 
 -- name: GetUserSubscribers :many
 SELECT * FROM user_subscribers WHERE user_id = $1;
+
+-- name: GetUserSubscriptions :many
+SELECT * FROM user_subscribers WHERE subscriber_id = $1;

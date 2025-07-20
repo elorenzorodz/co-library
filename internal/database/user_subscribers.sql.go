@@ -82,3 +82,36 @@ func (q *Queries) GetUserSubscribers(ctx context.Context, userID uuid.UUID) ([]U
 	}
 	return items, nil
 }
+
+const getUserSubscriptions = `-- name: GetUserSubscriptions :many
+SELECT id, created_at, updated_at, user_id, subscriber_id FROM user_subscribers WHERE subscriber_id = $1
+`
+
+func (q *Queries) GetUserSubscriptions(ctx context.Context, subscriberID uuid.UUID) ([]UserSubscriber, error) {
+	rows, err := q.db.QueryContext(ctx, getUserSubscriptions, subscriberID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserSubscriber
+	for rows.Next() {
+		var i UserSubscriber
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.UserID,
+			&i.SubscriberID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
