@@ -49,3 +49,36 @@ func (q *Queries) DeleteUserSubscriber(ctx context.Context, arg DeleteUserSubscr
 	_, err := q.db.ExecContext(ctx, deleteUserSubscriber, arg.SubscriberID, arg.UserID)
 	return err
 }
+
+const getUserSubscribers = `-- name: GetUserSubscribers :many
+SELECT id, created_at, updated_at, user_id, subscriber_id FROM user_subscribers WHERE user_id = $1
+`
+
+func (q *Queries) GetUserSubscribers(ctx context.Context, userID uuid.UUID) ([]UserSubscriber, error) {
+	rows, err := q.db.QueryContext(ctx, getUserSubscribers, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserSubscriber
+	for rows.Next() {
+		var i UserSubscriber
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.UserID,
+			&i.SubscriberID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

@@ -19,6 +19,16 @@ func DatabaseUserSubscriberToUserSubscriberJSON(databaseUserSubscriber database.
 	}
 }
 
+func DatabaseUserSubscribersToUserSubscribersJSON(databaseUserSubscribers []database.UserSubscriber) []UserSubscriber {
+	userSubscribers := []UserSubscriber{}
+
+	for _, databaseUserSubscriber := range databaseUserSubscribers {
+		userSubscribers = append(userSubscribers, DatabaseUserSubscriberToUserSubscriberJSON(databaseUserSubscriber))
+	}
+
+	return userSubscribers
+}
+
 type UserSubscriberAuthHandler func(http.ResponseWriter, *http.Request, uuid.UUID)
 
 func (userSubscriberAPIConfig *UserSubscriberAPIConfig) Authorization(handler UserSubscriberAuthHandler) http.HandlerFunc {

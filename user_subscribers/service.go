@@ -62,3 +62,15 @@ func (userSubscriberAPIConfig *UserSubscriberAPIConfig) DeleteUserSubscriber(wri
 
 	common.JSONResponse(writer, http.StatusOK, "User subscription successfully deleted")
 }
+
+func (userSubscriberAPIConfig *UserSubscriberAPIConfig) GetUserSubscribers(writer http.ResponseWriter, request *http.Request, userId uuid.UUID) {
+	userSubscribers, getUserSubscribersError := userSubscriberAPIConfig.DB.GetUserSubscribers(request.Context(), userId)
+
+	if getUserSubscribersError != nil {
+		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error getting subscribers: %s", getUserSubscribersError))
+
+		return
+	}
+
+	common.JSONResponse(writer, http.StatusOK, DatabaseUserSubscribersToUserSubscribersJSON(userSubscribers))
+}
