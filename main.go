@@ -69,6 +69,7 @@ func main() {
 	}
 
 	muxRouter.HandleFunc(apiVersion + "/users/subscribe/{user_id}", userSubscriberAPIConfig.Authorization(userSubscriberAPIConfig.CreateUserSubscriber)).Methods("POST")
+	muxRouter.HandleFunc(apiVersion + "/users/unsubscribe/{user_id}", userSubscriberAPIConfig.Authorization(userSubscriberAPIConfig.DeleteUserSubscriber)).Methods("DELETE")
 
 	http.Handle("/", muxRouter)
 

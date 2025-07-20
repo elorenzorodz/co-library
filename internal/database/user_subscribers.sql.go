@@ -35,3 +35,17 @@ func (q *Queries) CreateUserSubscriber(ctx context.Context, arg CreateUserSubscr
 	)
 	return i, err
 }
+
+const deleteUserSubscriber = `-- name: DeleteUserSubscriber :exec
+DELETE FROM user_subscribers WHERE subscriber_id = $1 AND user_id = $2
+`
+
+type DeleteUserSubscriberParams struct {
+	SubscriberID uuid.UUID
+	UserID       uuid.UUID
+}
+
+func (q *Queries) DeleteUserSubscriber(ctx context.Context, arg DeleteUserSubscriberParams) error {
+	_, err := q.db.ExecContext(ctx, deleteUserSubscriber, arg.SubscriberID, arg.UserID)
+	return err
+}

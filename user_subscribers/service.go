@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func (userSubscriberAPIConfig *UserSubscriberAPIConfig) CreateUserSubscriber(writer http.ResponseWriter, request *http.Request, borrowerId uuid.UUID) {
+func (userSubscriberAPIConfig *UserSubscriberAPIConfig) CreateUserSubscriber(writer http.ResponseWriter, request *http.Request, subscriberId uuid.UUID) {
 	vars := mux.Vars(request)
 	userId, parseUserIdError := uuid.Parse(vars["user_id"])
 
@@ -23,7 +23,7 @@ func (userSubscriberAPIConfig *UserSubscriberAPIConfig) CreateUserSubscriber(wri
 	createUserSubscriberParam := database.CreateUserSubscriberParams {
 		ID: uuid.New(),
 		UserID: userId,
-		SubscriberID: borrowerId,
+		SubscriberID: subscriberId,
 	}
 
 	newUserSubscriber, createUserSubscriberError := userSubscriberAPIConfig.DB.CreateUserSubscriber(request.Context(), createUserSubscriberParam)
@@ -35,4 +35,30 @@ func (userSubscriberAPIConfig *UserSubscriberAPIConfig) CreateUserSubscriber(wri
 	}
 
 	common.JSONResponse(writer, http.StatusCreated, DatabaseUserSubscriberToUserSubscriberJSON(newUserSubscriber))
+}
+
+func (userSubscriberAPIConfig *UserSubscriberAPIConfig) DeleteUserSubscriber(writer http.ResponseWriter, request *http.Request, subscriberId uuid.UUID) {
+	vars := mux.Vars(request)
+	userId, parseUserIdError := uuid.Parse(vars["user_id"])
+
+	if parseUserIdError != nil {
+		common.ErrorResponse(writer, http.StatusBadRequest, "Invalid user id")
+
+		return
+	}
+
+	deleteUserSubscriberParam := database.DeleteUserSubscriberParams {
+		SubscriberID: subscriberId,
+		UserID: userId,
+	}
+
+	deleteUserSubscriberError := userSubscriberAPIConfig.DB.DeleteUserSubscriber(request.Context(), deleteUserSubscriberParam)
+
+	if deleteUserSubscriberError != nil {
+		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error removing subscription to user: %s", deleteUserSubscriberError))
+
+		return
+	}
+
+	common.JSONResponse(writer, http.StatusOK, "User subscription successfully deleted")
 }
