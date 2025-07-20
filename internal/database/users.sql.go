@@ -69,3 +69,61 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 	)
 	return i, err
 }
+
+const getUserByID = `-- name: GetUserByID :one
+SELECT id, first_name, last_name, email, password, created_at, updated_at FROM users WHERE id = $1
+`
+
+func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByID, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
+		&i.Password,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getUsersBySubscriberID = `-- name: GetUsersBySubscriberID :many
+SELECT u.id, u.first_name, u.last_name, u.email, u.password, u.created_at, u.updated_at
+FROM users AS u
+LEFT JOIN user_subscribers AS us
+ON us.subscriber_id = u.ID
+WHERE us.user_id = $1
+`
+
+func (q *Queries) GetUsersBySubscriberID(ctx context.Context, userID uuid.UUID) ([]User, error) {
+	rows, err := q.db.QueryContext(ctx, getUsersBySubscriberID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.FirstName,
+			&i.LastName,
+			&i.Email,
+			&i.Password,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

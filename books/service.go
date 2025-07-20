@@ -3,11 +3,13 @@ package books
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/elorenzorodz/co-library/common"
 	"github.com/elorenzorodz/co-library/internal/database"
+	"github.com/elorenzorodz/co-library/users"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
@@ -44,6 +46,21 @@ func (bookAPIConfig *BookAPIConfig) CreateBook(writer http.ResponseWriter, reque
 		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error creating book: %s", createBookError))
 
 		return
+	}
+
+	// Alert subscribers about the new book.
+	subscribers, getSubscribersErrors := bookAPIConfig.DB.GetUsersBySubscriberID(request.Context(), userId)
+
+	if getSubscribersErrors != nil {
+		log.Printf("Failed to get subscribers for new book alert: %s", getSubscribersErrors)
+	} else {
+		senderUser, getUserError := bookAPIConfig.DB.GetUserByID(request.Context(), userId)
+
+		if getUserError != nil {
+			log.Printf("Failed to get book owner details: %s", getUserError)
+		} else {
+			go users.DispatchNewBookAlertsSync(params.Title, subscribers, senderUser)
+		}
 	}
 
 	common.JSONResponse(writer, http.StatusCreated, DatabaseBookToBookJSON(newBook))
