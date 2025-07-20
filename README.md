@@ -13,3 +13,4 @@ Co-library is a simple API project that act like a library management system but
 - [golang.org/x/crypto](golang.org/x/crypto)
 - [github.com/sqlc-dev/sqlc](https://github.com/sqlc-dev/sqlc)
 - [github.com/pressly/goose](https://github.com/pressly/goose)
+- [github.com/mailgun/mailgun-go/v4](github.com/mailgun/mailgun-go/v4)
