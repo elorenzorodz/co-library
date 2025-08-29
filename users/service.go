@@ -3,6 +3,7 @@ package users
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -126,7 +127,7 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 	bytes, readFileError := os.ReadFile("private.pem")
 
 	if readFileError != nil {
-		fmt.Printf("Read file error %v", readFileError)
+		log.Printf("Read file error %v", readFileError)
 		common.ErrorResponse(writer, http.StatusBadRequest, "Failed to login. Please try again in a few minutes")
 
 		return
@@ -135,7 +136,7 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 	key, parsePrivateKeyError := jwt.ParseECPrivateKeyFromPEM(bytes)
 
 	if parsePrivateKeyError != nil {
-		fmt.Printf("Parse error %v", parsePrivateKeyError)
+		log.Printf("Parse error %v", parsePrivateKeyError)
 		common.ErrorResponse(writer, http.StatusBadRequest, "Failed to login. Please try again in a few minutes")
 
 		return
@@ -144,7 +145,7 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 	signedToken, signedStringError := newToken.SignedString(key)
 
 	if signedStringError != nil {
-		fmt.Printf("Signing error %v", signedStringError)
+		log.Printf("Signing error %v", signedStringError)
 		common.ErrorResponse(writer, http.StatusBadRequest, "Failed to login. Please try again in a few minutes")
 
 		return
