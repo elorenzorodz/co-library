@@ -2,6 +2,26 @@
 
 Co-library is a simple API project that act like a library management system but instead, you can add your own books, lend or issue it to other people and subscribe to other users to be notified if they added new books in their collection.
 
+## How to setup
+
+```bash
+go mod init github.com/elorenzorodz/co-library
+
+go mod vendor
+
+go mod tidy
+```
+
+## How to run
+
+```bash
+go build; .\co-library.exe
+
+OR
+
+go run .
+```
+
 ## Requirements
 
 - PostgreSQL
