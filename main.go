@@ -53,7 +53,7 @@ func main() {
 	muxRouter.HandleFunc(routeAPIPrefix + "/books/browse", middleware.Authorization(&bookAPIConfig.APIConfig, bookAPIConfig.BrowseBooks)).Methods("GET")
 	muxRouter.HandleFunc(routeAPIPrefix + "/books/browse/{id}", middleware.Authorization(&bookAPIConfig.APIConfig, bookAPIConfig.BrowseBooksByUserID)).Methods("GET")
 	muxRouter.HandleFunc(routeAPIPrefix + "/books/{id}", middleware.Authorization(&bookAPIConfig.APIConfig, bookAPIConfig.GetBook)).Methods("GET")
-	muxRouter.HandleFunc(routeAPIPrefix + "/books/{id}", middleware.Authorization(&bookAPIConfig.APIConfig, bookAPIConfig.UpdateBook)).Methods("POST")
+	muxRouter.HandleFunc(routeAPIPrefix + "/books/{id}", middleware.Authorization(&bookAPIConfig.APIConfig, bookAPIConfig.UpdateBook)).Methods("PATCH")
 	muxRouter.HandleFunc(routeAPIPrefix + "/books/{id}", middleware.Authorization(&bookAPIConfig.APIConfig, bookAPIConfig.DeleteBook)).Methods("DELETE")
 
 	// Book borrows endpoints.

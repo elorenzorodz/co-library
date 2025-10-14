@@ -15,15 +15,10 @@ import (
 )
 
 func (bookAPIConfig *BookAPIConfig) CreateBook(writer http.ResponseWriter, request *http.Request, userId uuid.UUID) {
-	type parameters struct {
-		Title  string `json:"title"`
-		Author string `json:"author"`
-	}
-
-	params := parameters{}
+	upsertBookParameters := UpsertBookParameters{}
 
 	decoder := json.NewDecoder(request.Body)
-	decoderError := decoder.Decode(&params)
+	decoderError := decoder.Decode(&upsertBookParameters)
 
 	if decoderError != nil {
 		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error parsing JSON: %s", decoderError))
@@ -33,17 +28,17 @@ func (bookAPIConfig *BookAPIConfig) CreateBook(writer http.ResponseWriter, reque
 
 	createBookParams := database.CreateBookParams{
 		ID:        uuid.New(),
-		Title:     params.Title,
-		Author:    params.Author,
+		Title:     upsertBookParameters.Title,
+		Author:    upsertBookParameters.Author,
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
-		UserID: userId,
+		UserID:    userId,
 	}
 
 	newBook, createBookError := bookAPIConfig.DB.CreateBook(request.Context(), createBookParams)
 
 	if createBookError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error creating book: %s", createBookError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error creating book: %s", createBookError))
 
 		return
 	}
@@ -59,7 +54,7 @@ func (bookAPIConfig *BookAPIConfig) CreateBook(writer http.ResponseWriter, reque
 		if getUserError != nil {
 			log.Printf("Failed to get book owner details: %s", getUserError)
 		} else {
-			go users.DispatchNewBookAlertsSync(params.Title, subscribers, senderUser)
+			go users.DispatchNewBookAlertsSync(upsertBookParameters.Title, subscribers, senderUser)
 		}
 	}
 
@@ -70,7 +65,7 @@ func (bookAPIConfig *BookAPIConfig) GetBooks(writer http.ResponseWriter, request
 	getBooks, getBooksError := bookAPIConfig.DB.GetBooks(request.Context(), userId)
 
 	if getBooksError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error getting books: %s", getBooksError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error getting books: %s", getBooksError))
 
 		return
 	}
@@ -91,7 +86,7 @@ func (bookAPIConfig *BookAPIConfig) GetBook(writer http.ResponseWriter, request 
 	getBook, getBookError := bookAPIConfig.DB.GetBook(request.Context(), bookId)
 
 	if getBookError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error getting book: %s", getBookError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error getting book: %s", getBookError))
 
 		return
 	}
@@ -109,15 +104,10 @@ func (bookAPIConfig *BookAPIConfig) UpdateBook(writer http.ResponseWriter, reque
 		return
 	}
 
-	type parameters struct {
-		Title  string `json:"title"`
-		Author string `json:"author"`
-	}
-
-	params := parameters{}
+	upsertBookParameters := UpsertBookParameters{}
 
 	decoder := json.NewDecoder(request.Body)
-	decoderError := decoder.Decode(&params)
+	decoderError := decoder.Decode(&upsertBookParameters)
 
 	if decoderError != nil {
 		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error parsing JSON: %s", decoderError))
@@ -126,15 +116,15 @@ func (bookAPIConfig *BookAPIConfig) UpdateBook(writer http.ResponseWriter, reque
 	}
 
 	updateBookParams := database.UpdateBookParams{
-		ID: bookId,
-		Title: params.Title,
-		Author: params.Author,
+		ID:     bookId,
+		Title:  upsertBookParameters.Title,
+		Author: upsertBookParameters.Author,
 	}
 
 	updateBook, updateBookError := bookAPIConfig.DB.UpdateBook(request.Context(), updateBookParams)
 
 	if updateBookError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error updating book: %s", updateBookError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error updating book: %s", updateBookError))
 
 		return
 	}
@@ -153,14 +143,14 @@ func (bookAPIConfig *BookAPIConfig) DeleteBook(writer http.ResponseWriter, reque
 	}
 
 	deleteBookParams := database.DeleteBookParams{
-		ID: bookId,
+		ID:     bookId,
 		UserID: userId,
 	}
 
 	deleteBookError := bookAPIConfig.DB.DeleteBook(request.Context(), deleteBookParams)
 
 	if deleteBookError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error deleting book: %s", deleteBookError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error deleting book: %s", deleteBookError))
 
 		return
 	}
@@ -172,7 +162,7 @@ func (bookAPIConfig *BookAPIConfig) BrowseBooks(writer http.ResponseWriter, requ
 	browseBooks, getBooksError := bookAPIConfig.DB.BrowseBooks(request.Context())
 
 	if getBooksError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error getting books: %s", getBooksError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error getting books: %s", getBooksError))
 
 		return
 	}
@@ -180,7 +170,7 @@ func (bookAPIConfig *BookAPIConfig) BrowseBooks(writer http.ResponseWriter, requ
 	common.JSONResponse(writer, http.StatusOK, DatabaseBooksToBooksJSON(browseBooks))
 }
 
-func (bookAPIConfig *BookAPIConfig) BrowseBooksByUserID(writer http.ResponseWriter, request *http.Request, userId uuid.UUID) {
+func (bookAPIConfig *BookAPIConfig) BrowseBooksByUserID(writer http.ResponseWriter, request *http.Request, uId uuid.UUID) {
 	vars := mux.Vars(request)
 	userId, parseUserIdError := uuid.Parse(vars["id"])
 
@@ -193,7 +183,7 @@ func (bookAPIConfig *BookAPIConfig) BrowseBooksByUserID(writer http.ResponseWrit
 	browseBooks, getBooksError := bookAPIConfig.DB.GetBooks(request.Context(), userId)
 
 	if getBooksError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error getting books: %s", getBooksError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error getting books: %s", getBooksError))
 
 		return
 	}

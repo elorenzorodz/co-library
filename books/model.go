@@ -12,10 +12,15 @@ type BookAPIConfig struct {
 }
 
 type Book struct {
-	ID uuid.UUID `json:"id"`
-	Title string `json:"title"`
-	Author string `json:"author"`
+	ID        uuid.UUID `json:"id"`
+	Title     string    `json:"title"`
+	Author    string    `json:"author"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
-	UserID uuid.UUID `json:"user_id"`
+	UserID    uuid.UUID `json:"user_id"`
+}
+
+type UpsertBookParameters struct {
+	Title  string `json:"title"`
+	Author string `json:"author"`
 }
