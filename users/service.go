@@ -65,7 +65,7 @@ func (userAPIConfig *UserAPIConfig) CreateUser(writer http.ResponseWriter, reque
 	newUser, createUserError := userAPIConfig.DB.CreateUser(request.Context(), createUserParams)
 
 	if createUserError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error creating user: %s", createUserError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error creating user: %s", createUserError))
 
 		return
 	}
@@ -88,7 +88,7 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 	getUser, getUserError := userAPIConfig.DB.GetUserByEmail(request.Context(), userLoginParameters.Email)
 
 	if getUserError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error parsing JSON: %s", getUserError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error parsing JSON: %s", getUserError))
 
 		return
 	}
@@ -116,7 +116,7 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 
 	if readFileError != nil {
 		log.Printf("Read file error %v", readFileError)
-		common.ErrorResponse(writer, http.StatusBadRequest, "Failed to login. Please try again in a few minutes")
+		common.ErrorResponse(writer, http.StatusInternalServerError, "Failed to login. Please try again in a few minutes")
 
 		return
 	}
@@ -125,7 +125,7 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 
 	if parsePrivateKeyError != nil {
 		log.Printf("Parse error %v", parsePrivateKeyError)
-		common.ErrorResponse(writer, http.StatusBadRequest, "Failed to login. Please try again in a few minutes")
+		common.ErrorResponse(writer, http.StatusInternalServerError, "Failed to login. Please try again in a few minutes")
 
 		return
 	}
@@ -134,7 +134,7 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 
 	if signedStringError != nil {
 		log.Printf("Signing error %v", signedStringError)
-		common.ErrorResponse(writer, http.StatusBadRequest, "Failed to login. Please try again in a few minutes")
+		common.ErrorResponse(writer, http.StatusInternalServerError, "Failed to login. Please try again in a few minutes")
 
 		return
 	}
