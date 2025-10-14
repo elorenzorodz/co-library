@@ -21,6 +21,18 @@ type User struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
+type CreateUserParameters struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+}
+
+type UserLoginParameters struct {
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+}
+
 type UserAuthorized struct {
 	Email string `json:"email"`
 	Token string `json:"token"`

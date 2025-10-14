@@ -15,17 +15,10 @@ import (
 )
 
 func (userAPIConfig *UserAPIConfig) CreateUser(writer http.ResponseWriter, request *http.Request) {
-	type parameters struct {
-		FirstName string `json:"first_name"`
-		LastName  string `json:"last_name"`
-		Email     string `json:"email"`
-		Password  string `json:"password"`
-	}
-
-	params := parameters{}
+	createUserParameters := CreateUserParameters{}
 
 	decoder := json.NewDecoder(request.Body)
-	decoderError := decoder.Decode(&params)
+	decoderError := decoder.Decode(&createUserParameters)
 
 	if decoderError != nil {
 		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error parsing JSON: %s", decoderError))
@@ -34,7 +27,7 @@ func (userAPIConfig *UserAPIConfig) CreateUser(writer http.ResponseWriter, reque
 	}
 
 	// Validate email.
-	isEmailValid := common.IsEmailValid(params.Email)
+	isEmailValid := common.IsEmailValid(createUserParameters.Email)
 
 	if !isEmailValid {
 		common.ErrorResponse(writer, http.StatusBadRequest, "Error creating user: Invalid email address")
@@ -43,7 +36,7 @@ func (userAPIConfig *UserAPIConfig) CreateUser(writer http.ResponseWriter, reque
 	}
 
 	// Validate password.
-	isPasswordValid := common.IsPasswordValid(params.Password)
+	isPasswordValid := common.IsPasswordValid(createUserParameters.Password)
 
 	if !isPasswordValid {
 		common.ErrorResponse(writer, http.StatusBadRequest, "Error creating user: Invalid password. Password must contain at least 1 upper case letter, 1 lower case letter, 1 digit and must be 8 to 15 characters long.")
@@ -51,7 +44,7 @@ func (userAPIConfig *UserAPIConfig) CreateUser(writer http.ResponseWriter, reque
 		return
 	}
 
-	hashedPassword, hashPasswordError := HashPassword(params.Password)
+	hashedPassword, hashPasswordError := HashPassword(createUserParameters.Password)
 
 	if hashPasswordError != nil {
 		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error creating user: %s", hashPasswordError))
@@ -61,9 +54,9 @@ func (userAPIConfig *UserAPIConfig) CreateUser(writer http.ResponseWriter, reque
 
 	createUserParams := database.CreateUserParams {
 		ID: uuid.New(),
-		FirstName: params.FirstName,
-		LastName: params.LastName,
-		Email: params.Email,
+		FirstName: createUserParameters.FirstName,
+		LastName: createUserParameters.LastName,
+		Email: createUserParameters.Email,
 		Password: hashedPassword,
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
@@ -81,15 +74,10 @@ func (userAPIConfig *UserAPIConfig) CreateUser(writer http.ResponseWriter, reque
 }
 
 func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *http.Request) {
-	type parameters struct {
-		Email     string `json:"email"`
-		Password  string `json:"password"`
-	}
-
-	params := parameters{}
+	userLoginParameters := UserLoginParameters{}
 
 	decoder := json.NewDecoder(request.Body)
-	decoderError := decoder.Decode(&params)
+	decoderError := decoder.Decode(&userLoginParameters)
 
 	if decoderError != nil {
 		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error parsing JSON: %s", decoderError))
@@ -97,7 +85,7 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 		return
 	}
 
-	getUser, getUserError := userAPIConfig.DB.GetUserByEmail(request.Context(), params.Email)
+	getUser, getUserError := userAPIConfig.DB.GetUserByEmail(request.Context(), userLoginParameters.Email)
 
 	if getUserError != nil {
 		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error parsing JSON: %s", getUserError))
@@ -105,7 +93,7 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 		return
 	}
 
-	verifyPasswordError := VerifyPassword(params.Password, getUser.Password)
+	verifyPasswordError := VerifyPassword(userLoginParameters.Password, getUser.Password)
 
 	if verifyPasswordError != nil {
 		common.ErrorResponse(writer, http.StatusBadRequest, "Incorrect email address or password")
