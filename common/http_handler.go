@@ -41,16 +41,16 @@ func GetJWT(headers http.Header) (string, error){
 }
 
 func JSONResponse(writer http.ResponseWriter, code int, payload interface{}) {
-	data, error := json.Marshal(payload)
+	data, jsonMarshalError := json.Marshal(payload)
 
-	if error != nil {
+	if jsonMarshalError != nil {
 		log.Printf("Failed to marshal JSON response: %v", payload)
-		writer.WriteHeader(500)
+		writer.WriteHeader(http.StatusInternalServerError)
 
 		return
 	}
 
-	writer.Header().Add("Content-Type", "application/json")
+	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(code)
 	writer.Write(data)
 }

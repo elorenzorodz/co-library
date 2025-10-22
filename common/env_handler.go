@@ -14,3 +14,11 @@ func GetEnvVariable(name string) string {
 
 	return envValue
 }
+
+func LoadEnvConfig() EnvConfig {
+	return EnvConfig{
+		APIVersion: GetEnvVariable("API_VERSION"),
+		Port:       GetEnvVariable("PORT"),
+		DBUrl:      GetEnvVariable("DB_URL"),
+	}
+}

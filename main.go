@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/elorenzorodz/co-library/book_borrows"
 	"github.com/elorenzorodz/co-library/books"
@@ -12,24 +13,40 @@ import (
 	"github.com/elorenzorodz/co-library/middleware"
 	"github.com/elorenzorodz/co-library/user_subscribers"
 	"github.com/elorenzorodz/co-library/users"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
 func main() {
-	godotenv.Load(".env.dev")
+	if envFileLoadError := godotenv.Load(".env.dev"); envFileLoadError != nil {
+		log.Fatal("Error loading .env file:", envFileLoadError)
+	}
 
-	apiVersion := common.GetEnvVariable("API_VERSION")
-	routeAPIPrefix := fmt.Sprintf("/api/%s", apiVersion)
+	envConfig := common.LoadEnvConfig()
 
-	dbConnectionString := common.GetDBConnectionSettings()
-	dbConnection := common.OpenDBConnection(dbConnectionString)
+	publicBytes, readPublicKeyError := os.ReadFile("public.pem")
+
+    if readPublicKeyError != nil {
+        log.Fatal("Error reading public.pem:", readPublicKeyError)
+    }
+
+    publicKey, parsingPublicKeyError := jwt.ParseECPublicKeyFromPEM(publicBytes)
+
+    if parsingPublicKeyError != nil {
+        log.Fatal("Error parsing public key:", parsingPublicKeyError)
+    }
+
+	routeAPIPrefix := fmt.Sprintf("/api/%s", envConfig.APIVersion)
+
+	dbConnection := common.OpenDBConnection(envConfig.DBUrl)
 
 	database := database.New(dbConnection)
 
 	apiConfig := common.APIConfig {
 		DB: database,
+		PublicKey: publicKey,
 	}
 
 	muxRouter := mux.NewRouter()
@@ -74,15 +91,11 @@ func main() {
 	muxRouter.HandleFunc(routeAPIPrefix + "/users/subscribers", middleware.Authorization(&userSubscriberAPIConfig.APIConfig, userSubscriberAPIConfig.GetUserSubscribers)).Methods("GET")
 	muxRouter.HandleFunc(routeAPIPrefix + "/users/subscriptions", middleware.Authorization(&userSubscriberAPIConfig.APIConfig, userSubscriberAPIConfig.GetUserSubscriptions)).Methods("GET")
 
-	http.Handle("/", muxRouter)
-
-	port := common.GetEnvVariable("PORT")
-
-	log.Printf("Server starting on port %v", port)
+	log.Printf("Server starting on port %v", envConfig.Port)
 
 	server := &http.Server{
-		Handler: nil,
-		Addr: ":" + port,
+		Handler: muxRouter,
+		Addr: ":" + envConfig.Port,
 	}
 
 	serverError := server.ListenAndServe()

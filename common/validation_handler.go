@@ -3,7 +3,7 @@ package common
 import (
 	"errors"
 	"fmt"
-	"os"
+	"log"
 	"regexp"
 	"unicode"
 
@@ -14,7 +14,7 @@ func IsEmailValid(email string) bool {
 	emailRegex, emailValidationError := regexp.MatchString(`^[A-Za-z0-9]+([._\-][A-Za-z0-9]+)*@[A-Za-z0-9]+([\-\.][A-Za-z0-9]+)*\.[A-Za-z]{2,15}$`, email)
 
 	if emailValidationError != nil {
-		fmt.Printf("Invalid email: %s", emailValidationError)
+		log.Printf("Invalid email: %s", emailValidationError)
 	}
 
 	return emailRegex
@@ -43,23 +43,7 @@ func IsPasswordValid(password string) bool {
 	return hasUpper && hasLower && hasDigit && !hasSpace
 }
 
-func ValidateJWTAndGetEmailClaim(signedToken string) (string, error) {
-	publicBytes, publicKeyError := os.ReadFile("public.pem")
-
-	if publicKeyError != nil {
-		fmt.Printf("Read public key error: %s", publicKeyError)
-
-		return "", fmt.Errorf("read public key error: %s", publicKeyError)
-	}
-
-	publicKey, publicKeyParseError := jwt.ParseECPublicKeyFromPEM(publicBytes)
-
-	if publicKeyParseError != nil {
-		fmt.Printf("Parse public key error: %s", publicKeyParseError)
-
-		return "", fmt.Errorf("parse public key error: %s", publicKeyParseError)
-	}
-
+func ValidateJWTAndGetEmailClaim(signedToken string, publicKey interface{}) (string, error) {
 	parsedToken, parsedTokenError := jwt.Parse(signedToken, func(token *jwt.Token) (interface{}, error) {
 		_, ok := token.Method.(*jwt.SigningMethodECDSA)
 		
@@ -71,7 +55,7 @@ func ValidateJWTAndGetEmailClaim(signedToken string) (string, error) {
 	})
 
 	if parsedTokenError != nil {
-		fmt.Printf("Token parse error: %s", parsedTokenError)
+		log.Printf("Token parse error: %s", parsedTokenError)
 
 		return "", fmt.Errorf("token parse error: %s", parsedTokenError)
 	}
@@ -80,7 +64,7 @@ func ValidateJWTAndGetEmailClaim(signedToken string) (string, error) {
 		emailClaim, exists := claims["email"]
 
 		if !exists {
-			fmt.Println("Email claim not found")
+			log.Println("Email claim not found")
 
 			return "", errors.New("invalid token")
 		}
@@ -88,7 +72,7 @@ func ValidateJWTAndGetEmailClaim(signedToken string) (string, error) {
 		email, ok := emailClaim.(string)
 
 		if !ok {
-			fmt.Println("Email claim is not a string")
+			log.Println("Email claim is not a string")
 
 			return "", errors.New("invalid token")
 		}
