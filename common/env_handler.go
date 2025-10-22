@@ -17,8 +17,10 @@ func GetEnvVariable(name string) string {
 
 func LoadEnvConfig() EnvConfig {
 	return EnvConfig{
-		APIVersion: GetEnvVariable("API_VERSION"),
-		Port:       GetEnvVariable("PORT"),
-		DBUrl:      GetEnvVariable("DB_URL"),
+		APIVersion:           GetEnvVariable("API_VERSION"),
+		Port:                 GetEnvVariable("PORT"),
+		DBUrl:                GetEnvVariable("DB_URL"),
+		MailgunAPIKey:        GetEnvVariable("MAILGUN_API_KEY"),
+		MailgunSendingDomain: GetEnvVariable("MAILGUN_SENDING_DOMAIN"),
 	}
 }

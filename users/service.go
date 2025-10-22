@@ -1,11 +1,11 @@
 package users
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/elorenzorodz/co-library/common"
@@ -31,6 +31,21 @@ func (userAPIConfig *UserAPIConfig) CreateUser(writer http.ResponseWriter, reque
 
 	if !isEmailValid {
 		common.ErrorResponse(writer, http.StatusBadRequest, "Error creating user: Invalid email address")
+
+		return
+	}
+
+	// Check if email already exists.
+	_, getUserError := userAPIConfig.DB.GetUserByEmail(request.Context(), createUserParameters.Email)
+
+	if getUserError != nil {
+		if getUserError != sql.ErrNoRows {
+			common.ErrorResponse(writer, http.StatusInternalServerError, "Failed to register. Please try again in a few minutes")
+
+			return
+		}
+	} else {
+		common.ErrorResponse(writer, http.StatusConflict, "Failed to register. Email address already in use")
 
 		return
 	}
@@ -88,7 +103,11 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 	getUser, getUserError := userAPIConfig.DB.GetUserByEmail(request.Context(), userLoginParameters.Email)
 
 	if getUserError != nil {
-		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error parsing JSON: %s", getUserError))
+		if getUserError == sql.ErrNoRows {
+			common.ErrorResponse(writer, http.StatusUnauthorized, "Incorrect email address or password")
+		} else {
+			common.ErrorResponse(writer, http.StatusInternalServerError, "Failed to login. Please try again in a few minutes")
+		}	
 
 		return
 	}
@@ -96,7 +115,7 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 	verifyPasswordError := VerifyPassword(userLoginParameters.Password, getUser.Password)
 
 	if verifyPasswordError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, "Incorrect email address or password")
+		common.ErrorResponse(writer, http.StatusUnauthorized, "Incorrect email address or password")
 
 		return
 	}
@@ -112,25 +131,7 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 			"exp": time.Now().Add(time.Hour * 1).Unix(),
 	})
 
-	bytes, readFileError := os.ReadFile("private.pem")
-
-	if readFileError != nil {
-		log.Printf("Read file error %v", readFileError)
-		common.ErrorResponse(writer, http.StatusInternalServerError, "Failed to login. Please try again in a few minutes")
-
-		return
-	}
-
-	key, parsePrivateKeyError := jwt.ParseECPrivateKeyFromPEM(bytes)
-
-	if parsePrivateKeyError != nil {
-		log.Printf("Parse error %v", parsePrivateKeyError)
-		common.ErrorResponse(writer, http.StatusInternalServerError, "Failed to login. Please try again in a few minutes")
-
-		return
-	}
-
-	signedToken, signedStringError := newToken.SignedString(key)
+	signedToken, signedStringError := newToken.SignedString(userAPIConfig.APIConfig.JWTSigningKey)
 
 	if signedStringError != nil {
 		log.Printf("Signing error %v", signedStringError)

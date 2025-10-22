@@ -46,7 +46,9 @@ func main() {
 
 	apiConfig := common.APIConfig {
 		DB: database,
-		PublicKey: publicKey,
+		JWTSigningKey: publicKey,
+		MailgunAPIKey: envConfig.MailgunAPIKey,
+		MailgunSendingDomain: envConfig.MailgunSendingDomain,
 	}
 
 	muxRouter := mux.NewRouter()

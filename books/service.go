@@ -54,7 +54,7 @@ func (bookAPIConfig *BookAPIConfig) CreateBook(writer http.ResponseWriter, reque
 		if getUserError != nil {
 			log.Printf("Failed to get book owner details: %s", getUserError)
 		} else {
-			go users.DispatchNewBookAlertsSync(upsertBookParameters.Title, subscribers, senderUser)
+			go users.DispatchNewBookAlertsSync(upsertBookParameters.Title, subscribers, senderUser, bookAPIConfig.APIConfig.MailgunAPIKey, bookAPIConfig.APIConfig.MailgunSendingDomain)
 		}
 	}
 

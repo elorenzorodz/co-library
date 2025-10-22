@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elorenzorodz/co-library/common"
 	"github.com/elorenzorodz/co-library/internal/database"
 	"github.com/mailgun/mailgun-go/v4"
 	"golang.org/x/crypto/bcrypt"
@@ -40,10 +39,7 @@ func VerifyPassword(password, hash string) error {
     return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 }
 
-func DispatchNewBookAlertsSync(bookTitle string, subscribers []database.User, sender database.User) {
-	mailGunSendingDomain := common.GetEnvVariable("MAILGUN_SENDING_DOMAIN")
-	mailGunAPIKey := common.GetEnvVariable("MAILGUN_API_KEY")
-
+func DispatchNewBookAlertsSync(bookTitle string, subscribers []database.User, sender database.User, mailGunAPIKey string, mailGunSendingDomain string) {
 	waitGroup := &sync.WaitGroup{}
 
 	for _, subscriber := range subscribers {
@@ -68,7 +64,7 @@ func SendNewBookAlert(mailGunSendingDomain, mailGunAPIKey, senderName, senderEma
 
 	mg := mailgun.NewMailgun(mailGunSendingDomain, mailGunAPIKey)
 
-	mailgunMessage := mg.NewMessage(
+	mailgunMessage := mailgun.NewMessage(
 		fromNameAndEmail,
 		"My Library Just Got Updated",
 		fmt.Sprintf("Hi %s, \n\nI've added a new book in my library: %s \n\nCheck it out! Thank you.", subscriberName, bookTitle),
