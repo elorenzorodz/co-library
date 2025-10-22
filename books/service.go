@@ -75,7 +75,7 @@ func (bookAPIConfig *BookAPIConfig) GetBooks(writer http.ResponseWriter, request
 
 func (bookAPIConfig *BookAPIConfig) GetBook(writer http.ResponseWriter, request *http.Request, userId uuid.UUID) {
 	vars := mux.Vars(request)
-	bookId, parseBookIdError := uuid.Parse(vars["id"])
+	bookId, parseBookIdError := uuid.Parse(vars["bookId"])
 
 	if parseBookIdError != nil {
 		common.ErrorResponse(writer, http.StatusBadRequest, "Invalid book id")
@@ -96,7 +96,7 @@ func (bookAPIConfig *BookAPIConfig) GetBook(writer http.ResponseWriter, request 
 
 func (bookAPIConfig *BookAPIConfig) UpdateBook(writer http.ResponseWriter, request *http.Request, userId uuid.UUID) {
 	vars := mux.Vars(request)
-	bookId, parseBookIdError := uuid.Parse(vars["id"])
+	bookId, parseBookIdError := uuid.Parse(vars["bookId"])
 
 	if parseBookIdError != nil {
 		common.ErrorResponse(writer, http.StatusBadRequest, "Invalid book id")
@@ -134,7 +134,7 @@ func (bookAPIConfig *BookAPIConfig) UpdateBook(writer http.ResponseWriter, reque
 
 func (bookAPIConfig *BookAPIConfig) DeleteBook(writer http.ResponseWriter, request *http.Request, userId uuid.UUID) {
 	vars := mux.Vars(request)
-	bookId, parseBookIdError := uuid.Parse(vars["id"])
+	bookId, parseBookIdError := uuid.Parse(vars["bookId"])
 
 	if parseBookIdError != nil {
 		common.ErrorResponse(writer, http.StatusBadRequest, "Invalid book id")
@@ -172,7 +172,7 @@ func (bookAPIConfig *BookAPIConfig) BrowseBooks(writer http.ResponseWriter, requ
 
 func (bookAPIConfig *BookAPIConfig) BrowseBooksByUserID(writer http.ResponseWriter, request *http.Request, uId uuid.UUID) {
 	vars := mux.Vars(request)
-	userId, parseUserIdError := uuid.Parse(vars["id"])
+	userId, parseUserIdError := uuid.Parse(vars["userId"])
 
 	if parseUserIdError != nil {
 		common.ErrorResponse(writer, http.StatusBadRequest, "Invalid user id")
