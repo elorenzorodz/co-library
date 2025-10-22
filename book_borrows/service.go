@@ -12,7 +12,7 @@ import (
 
 func (bookBorrowAPIConfig *BookBorrowAPIConfig) IssueBook(writer http.ResponseWriter, request *http.Request, userId uuid.UUID) {
 	vars := mux.Vars(request)
-	bookId, parseBookIdError := uuid.Parse(vars["id"])
+	bookId, parseBookIdError := uuid.Parse(vars["bookId"])
 
 	if parseBookIdError != nil {
 		common.ErrorResponse(writer, http.StatusBadRequest, "Invalid book id")
@@ -23,18 +23,17 @@ func (bookBorrowAPIConfig *BookBorrowAPIConfig) IssueBook(writer http.ResponseWr
 	getBook, getBookError := bookBorrowAPIConfig.DB.GetBook(request.Context(), bookId)
 
 	if getBookError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error issuing book: %s", getBookError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error getting book details: %s", getBookError))
 
 		return
 	}
 
 	getBookBorrow, getBookBorrowError := bookBorrowAPIConfig.DB.GetBookBorrow(request.Context(), bookId)
 
-	if getBookBorrowError != nil &&  getBookBorrowError.Error() != "sql: no rows in result set" {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error issuing book: %s", getBookBorrowError))
+	if getBookBorrowError != nil && getBookBorrowError.Error() != "sql: no rows in result set" {
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error issuing book: %s", getBookBorrowError))
 
 		return
-		
 	}
 
 	if getBookBorrow.BookID == getBook.ID {
@@ -44,15 +43,15 @@ func (bookBorrowAPIConfig *BookBorrowAPIConfig) IssueBook(writer http.ResponseWr
 	}
 
 	issueBookParams := database.IssueBookParams{
-		ID:        uuid.New(),
-		BookID: getBook.ID,
-		BorrowerID:    userId,
+		ID:         uuid.New(),
+		BookID:     getBook.ID,
+		BorrowerID: userId,
 	}
 
 	issueBook, issueBookError := bookBorrowAPIConfig.DB.IssueBook(request.Context(), issueBookParams)
 
 	if issueBookError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error issuing book: %s", issueBookError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error issuing book: %s", issueBookError))
 
 		return
 	}
@@ -62,7 +61,7 @@ func (bookBorrowAPIConfig *BookBorrowAPIConfig) IssueBook(writer http.ResponseWr
 
 func (bookBorrowAPIConfig *BookBorrowAPIConfig) ReturnBook(writer http.ResponseWriter, request *http.Request, userId uuid.UUID) {
 	vars := mux.Vars(request)
-	bookBorrowId, parseBookBorrowIdError := uuid.Parse(vars["id"])
+	bookBorrowId, parseBookBorrowIdError := uuid.Parse(vars["bookBorrowId"])
 
 	if parseBookBorrowIdError != nil {
 		common.ErrorResponse(writer, http.StatusBadRequest, "Invalid book borrow id")
@@ -73,7 +72,7 @@ func (bookBorrowAPIConfig *BookBorrowAPIConfig) ReturnBook(writer http.ResponseW
 	returnBook, returnBookError := bookBorrowAPIConfig.DB.ReturnBook(request.Context(), bookBorrowId)
 
 	if returnBookError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error updating book borrow: %s", returnBookError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error updating book borrow: %s", returnBookError))
 
 		return
 	}
