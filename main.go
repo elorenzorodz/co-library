@@ -69,8 +69,8 @@ func main() {
 		APIConfig: apiConfig,
 	}
 
-	muxRouter.HandleFunc(routeAPIPrefix + "/users/subscribe/{user_id}", middleware.Authorization(&userSubscriberAPIConfig.APIConfig, userSubscriberAPIConfig.CreateUserSubscriber)).Methods("POST")
-	muxRouter.HandleFunc(routeAPIPrefix + "/users/unsubscribe/{user_id}", middleware.Authorization(&userSubscriberAPIConfig.APIConfig, userSubscriberAPIConfig.DeleteUserSubscriber)).Methods("DELETE")
+	muxRouter.HandleFunc(routeAPIPrefix + "/users/subscribe/{userId}", middleware.Authorization(&userSubscriberAPIConfig.APIConfig, userSubscriberAPIConfig.CreateUserSubscriber)).Methods("POST")
+	muxRouter.HandleFunc(routeAPIPrefix + "/users/unsubscribe/{userId}", middleware.Authorization(&userSubscriberAPIConfig.APIConfig, userSubscriberAPIConfig.DeleteUserSubscriber)).Methods("DELETE")
 	muxRouter.HandleFunc(routeAPIPrefix + "/users/subscribers", middleware.Authorization(&userSubscriberAPIConfig.APIConfig, userSubscriberAPIConfig.GetUserSubscribers)).Methods("GET")
 	muxRouter.HandleFunc(routeAPIPrefix + "/users/subscriptions", middleware.Authorization(&userSubscriberAPIConfig.APIConfig, userSubscriberAPIConfig.GetUserSubscriptions)).Methods("GET")
 

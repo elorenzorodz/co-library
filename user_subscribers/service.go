@@ -12,7 +12,7 @@ import (
 
 func (userSubscriberAPIConfig *UserSubscriberAPIConfig) CreateUserSubscriber(writer http.ResponseWriter, request *http.Request, subscriberId uuid.UUID) {
 	vars := mux.Vars(request)
-	userId, parseUserIdError := uuid.Parse(vars["user_id"])
+	userId, parseUserIdError := uuid.Parse(vars["userId"])
 
 	if parseUserIdError != nil {
 		common.ErrorResponse(writer, http.StatusBadRequest, "Invalid user id")
@@ -20,16 +20,16 @@ func (userSubscriberAPIConfig *UserSubscriberAPIConfig) CreateUserSubscriber(wri
 		return
 	}
 
-	createUserSubscriberParam := database.CreateUserSubscriberParams {
-		ID: uuid.New(),
-		UserID: userId,
+	createUserSubscriberParam := database.CreateUserSubscriberParams{
+		ID:           uuid.New(),
+		UserID:       userId,
 		SubscriberID: subscriberId,
 	}
 
 	newUserSubscriber, createUserSubscriberError := userSubscriberAPIConfig.DB.CreateUserSubscriber(request.Context(), createUserSubscriberParam)
 
 	if createUserSubscriberError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error subscribiing to user: %s", createUserSubscriberError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error subscribiing to user: %s", createUserSubscriberError))
 
 		return
 	}
@@ -39,7 +39,7 @@ func (userSubscriberAPIConfig *UserSubscriberAPIConfig) CreateUserSubscriber(wri
 
 func (userSubscriberAPIConfig *UserSubscriberAPIConfig) DeleteUserSubscriber(writer http.ResponseWriter, request *http.Request, subscriberId uuid.UUID) {
 	vars := mux.Vars(request)
-	userId, parseUserIdError := uuid.Parse(vars["user_id"])
+	userId, parseUserIdError := uuid.Parse(vars["userId"])
 
 	if parseUserIdError != nil {
 		common.ErrorResponse(writer, http.StatusBadRequest, "Invalid user id")
@@ -47,15 +47,15 @@ func (userSubscriberAPIConfig *UserSubscriberAPIConfig) DeleteUserSubscriber(wri
 		return
 	}
 
-	deleteUserSubscriberParam := database.DeleteUserSubscriberParams {
+	deleteUserSubscriberParam := database.DeleteUserSubscriberParams{
 		SubscriberID: subscriberId,
-		UserID: userId,
+		UserID:       userId,
 	}
 
 	deleteUserSubscriberError := userSubscriberAPIConfig.DB.DeleteUserSubscriber(request.Context(), deleteUserSubscriberParam)
 
 	if deleteUserSubscriberError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error removing subscription to user: %s", deleteUserSubscriberError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error removing subscription to user: %s", deleteUserSubscriberError))
 
 		return
 	}
@@ -67,7 +67,7 @@ func (userSubscriberAPIConfig *UserSubscriberAPIConfig) GetUserSubscribers(write
 	userSubscribers, getUserSubscribersError := userSubscriberAPIConfig.DB.GetUserSubscribers(request.Context(), userId)
 
 	if getUserSubscribersError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error getting subscribers: %s", getUserSubscribersError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error getting subscribers: %s", getUserSubscribersError))
 
 		return
 	}
@@ -79,7 +79,7 @@ func (userSubscriberAPIConfig *UserSubscriberAPIConfig) GetUserSubscriptions(wri
 	userSubscriptions, getUserSubscriptionsError := userSubscriberAPIConfig.DB.GetUserSubscriptions(request.Context(), subscriberId)
 
 	if getUserSubscriptionsError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error getting subscriptions: %s", getUserSubscriptionsError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error getting subscriptions: %s", getUserSubscriptionsError))
 
 		return
 	}
