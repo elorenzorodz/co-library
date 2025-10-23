@@ -22,7 +22,7 @@ func (bookAPIConfig *BookAPIConfig) CreateBook(writer http.ResponseWriter, reque
 	decoderError := decoder.Decode(&upsertBookParameters)
 
 	if decoderError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error parsing JSON: %s", decoderError))
+		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("error parsing JSON: %s", decoderError))
 
 		return
 	}
@@ -39,7 +39,7 @@ func (bookAPIConfig *BookAPIConfig) CreateBook(writer http.ResponseWriter, reque
 	newBook, createBookError := bookAPIConfig.DB.CreateBook(request.Context(), createBookParams)
 
 	if createBookError != nil {
-		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error creating book: %s", createBookError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("error creating book: %s", createBookError))
 
 		return
 	}
@@ -66,7 +66,7 @@ func (bookAPIConfig *BookAPIConfig) GetBooks(writer http.ResponseWriter, request
 	getBooks, getBooksError := bookAPIConfig.DB.GetBooks(request.Context(), userId)
 
 	if getBooksError != nil {
-		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error getting books: %s", getBooksError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("error getting books: %s", getBooksError))
 
 		return
 	}
@@ -79,7 +79,7 @@ func (bookAPIConfig *BookAPIConfig) GetBook(writer http.ResponseWriter, request 
 	bookId, parseBookIdError := uuid.Parse(vars["bookId"])
 
 	if parseBookIdError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, "Invalid book id")
+		common.ErrorResponse(writer, http.StatusBadRequest, "invalid book id")
 
 		return
 	}
@@ -104,7 +104,7 @@ func (bookAPIConfig *BookAPIConfig) UpdateBook(writer http.ResponseWriter, reque
 	bookId, parseBookIdError := uuid.Parse(vars["bookId"])
 
 	if parseBookIdError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, "Invalid book id")
+		common.ErrorResponse(writer, http.StatusBadRequest, "invalid book id")
 
 		return
 	}
@@ -115,7 +115,7 @@ func (bookAPIConfig *BookAPIConfig) UpdateBook(writer http.ResponseWriter, reque
 	decoderError := decoder.Decode(&upsertBookParameters)
 
 	if decoderError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error parsing JSON: %s", decoderError))
+		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("error parsing JSON: %s", decoderError))
 
 		return
 	}
@@ -147,7 +147,7 @@ func (bookAPIConfig *BookAPIConfig) DeleteBook(writer http.ResponseWriter, reque
 	bookId, parseBookIdError := uuid.Parse(vars["bookId"])
 
 	if parseBookIdError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, "Invalid book id")
+		common.ErrorResponse(writer, http.StatusBadRequest, "invalid book id")
 
 		return
 	}
@@ -160,25 +160,25 @@ func (bookAPIConfig *BookAPIConfig) DeleteBook(writer http.ResponseWriter, reque
 	rowsAffected, deleteBookError := bookAPIConfig.DB.DeleteBook(request.Context(), deleteBookParams)
 
 	if deleteBookError != nil {
-		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error deleting book: %s", deleteBookError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("error deleting book: %s", deleteBookError))
 
 		return
 	}
 
 	if rowsAffected == 0 {
-		common.ErrorResponse(writer, http.StatusNotFound, "Book not found")
+		common.ErrorResponse(writer, http.StatusNotFound, "book not found")
 
         return
 	}
 
-	common.JSONResponse(writer, http.StatusOK, "Book successfully deleted")
+	common.JSONResponse(writer, http.StatusOK, "book successfully deleted")
 }
 
 func (bookAPIConfig *BookAPIConfig) BrowseBooks(writer http.ResponseWriter, request *http.Request, userId uuid.UUID) {
 	browseBooks, getBooksError := bookAPIConfig.DB.BrowseBooks(request.Context())
 
 	if getBooksError != nil {
-		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error getting books: %s", getBooksError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("error getting books: %s", getBooksError))
 
 		return
 	}
@@ -191,7 +191,7 @@ func (bookAPIConfig *BookAPIConfig) BrowseBooksByUserID(writer http.ResponseWrit
 	userId, parseUserIdError := uuid.Parse(vars["userId"])
 
 	if parseUserIdError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, "Invalid user id")
+		common.ErrorResponse(writer, http.StatusBadRequest, "invalid user id")
 
 		return
 	}

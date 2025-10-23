@@ -21,7 +21,7 @@ func (userAPIConfig *UserAPIConfig) CreateUser(writer http.ResponseWriter, reque
 	decoderError := decoder.Decode(&createUserParameters)
 
 	if decoderError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error parsing JSON: %s", decoderError))
+		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("error parsing JSON: %s", decoderError))
 
 		return
 	}
@@ -30,7 +30,7 @@ func (userAPIConfig *UserAPIConfig) CreateUser(writer http.ResponseWriter, reque
 	isEmailValid := common.IsEmailValid(createUserParameters.Email)
 
 	if !isEmailValid {
-		common.ErrorResponse(writer, http.StatusBadRequest, "Error creating user: Invalid email address")
+		common.ErrorResponse(writer, http.StatusBadRequest, "error creating user: Invalid email address")
 
 		return
 	}
@@ -40,12 +40,12 @@ func (userAPIConfig *UserAPIConfig) CreateUser(writer http.ResponseWriter, reque
 
 	if getUserError != nil {
 		if getUserError != sql.ErrNoRows {
-			common.ErrorResponse(writer, http.StatusInternalServerError, "Failed to register. Please try again in a few minutes")
+			common.ErrorResponse(writer, http.StatusInternalServerError, "failed to register. Please try again in a few minutes")
 
 			return
 		}
 	} else {
-		common.ErrorResponse(writer, http.StatusConflict, "Failed to register. Email address already in use")
+		common.ErrorResponse(writer, http.StatusConflict, "failed to register. Email address already in use")
 
 		return
 	}
@@ -54,7 +54,7 @@ func (userAPIConfig *UserAPIConfig) CreateUser(writer http.ResponseWriter, reque
 	isPasswordValid := common.IsPasswordValid(createUserParameters.Password)
 
 	if !isPasswordValid {
-		common.ErrorResponse(writer, http.StatusBadRequest, "Error creating user: Invalid password. Password must contain at least 1 upper case letter, 1 lower case letter, 1 digit and must be 8 to 15 characters long.")
+		common.ErrorResponse(writer, http.StatusBadRequest, "error creating user: Invalid password. Password must contain at least 1 upper case letter, 1 lower case letter, 1 digit and must be 8 to 15 characters long.")
 
 		return
 	}
@@ -62,7 +62,7 @@ func (userAPIConfig *UserAPIConfig) CreateUser(writer http.ResponseWriter, reque
 	hashedPassword, hashPasswordError := HashPassword(createUserParameters.Password)
 
 	if hashPasswordError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error creating user: %s", hashPasswordError))
+		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("error creating user: %s", hashPasswordError))
 
 		return
 	}
@@ -80,7 +80,7 @@ func (userAPIConfig *UserAPIConfig) CreateUser(writer http.ResponseWriter, reque
 	newUser, createUserError := userAPIConfig.DB.CreateUser(request.Context(), createUserParams)
 
 	if createUserError != nil {
-		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error creating user: %s", createUserError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("error creating user: %s", createUserError))
 
 		return
 	}
@@ -95,7 +95,7 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 	decoderError := decoder.Decode(&userLoginParameters)
 
 	if decoderError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("Error parsing JSON: %s", decoderError))
+		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("error parsing JSON: %s", decoderError))
 
 		return
 	}
@@ -104,9 +104,9 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 
 	if getUserError != nil {
 		if getUserError == sql.ErrNoRows {
-			common.ErrorResponse(writer, http.StatusUnauthorized, "Incorrect email address or password")
+			common.ErrorResponse(writer, http.StatusUnauthorized, "incorrect email address or password")
 		} else {
-			common.ErrorResponse(writer, http.StatusInternalServerError, "Failed to login. Please try again in a few minutes")
+			common.ErrorResponse(writer, http.StatusInternalServerError, "failed to login, Please try again in a few minutes")
 		}	
 
 		return
@@ -115,7 +115,7 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 	verifyPasswordError := VerifyPassword(userLoginParameters.Password, getUser.Password)
 
 	if verifyPasswordError != nil {
-		common.ErrorResponse(writer, http.StatusUnauthorized, "Incorrect email address or password")
+		common.ErrorResponse(writer, http.StatusUnauthorized, "incorrect email address or password")
 
 		return
 	}
@@ -135,7 +135,7 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 	
 	if signedStringError != nil {
 		log.Printf("Signing error: %v", signedStringError)
-		common.ErrorResponse(writer, http.StatusInternalServerError, "Failed to login. Please try again in a few minutes")
+		common.ErrorResponse(writer, http.StatusInternalServerError, "failed to login, Please try again in a few minutes")
 
 		return
 	}

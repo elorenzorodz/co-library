@@ -67,7 +67,7 @@ func (userSubscriberAPIConfig *UserSubscriberAPIConfig) CreateUserSubscriber(wri
 	newUserSubscriber, createUserSubscriberError := userSubscriberAPIConfig.DB.CreateUserSubscriber(request.Context(), createUserSubscriberParam)
 
 	if createUserSubscriberError != nil {
-		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error subscribiing to user: %s", createUserSubscriberError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("error subscribiing to user: %s", createUserSubscriberError))
 
 		return
 	}
@@ -80,7 +80,7 @@ func (userSubscriberAPIConfig *UserSubscriberAPIConfig) DeleteUserSubscriber(wri
 	userId, parseUserIdError := uuid.Parse(vars["userId"])
 
 	if parseUserIdError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, "Invalid user id")
+		common.ErrorResponse(writer, http.StatusBadRequest, "invalid user id")
 
 		return
 	}
@@ -104,7 +104,7 @@ func (userSubscriberAPIConfig *UserSubscriberAPIConfig) DeleteUserSubscriber(wri
         return
 	}
 
-	common.JSONResponse(writer, http.StatusOK, "User subscription successfully deleted")
+	common.JSONResponse(writer, http.StatusOK, "user subscription successfully deleted")
 }
 
 func (userSubscriberAPIConfig *UserSubscriberAPIConfig) GetUserSubscribers(writer http.ResponseWriter, request *http.Request, userId uuid.UUID) {
@@ -114,7 +114,7 @@ func (userSubscriberAPIConfig *UserSubscriberAPIConfig) GetUserSubscribers(write
 		if getUserSubscribersError == sql.ErrNoRows {
 			common.ErrorResponse(writer, http.StatusOK, "no user subscribers")
 		} else {
-			common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error getting subscribers: %s", getUserSubscribersError))
+			common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("error getting subscribers: %s", getUserSubscribersError))
 		}
 
 		return
@@ -130,7 +130,7 @@ func (userSubscriberAPIConfig *UserSubscriberAPIConfig) GetUserSubscriptions(wri
 		if getUserSubscriptionsError == sql.ErrNoRows {
 			common.ErrorResponse(writer, http.StatusOK, "no user subscriptions found")
 		} else {
-			common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error getting subscriptions: %s", getUserSubscriptionsError))
+			common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("error getting subscriptions: %s", getUserSubscriptionsError))
 		}
 
 		return

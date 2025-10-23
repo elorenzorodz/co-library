@@ -43,7 +43,7 @@ func (bookBorrowAPIConfig *BookBorrowAPIConfig) IssueBook(writer http.ResponseWr
 	_, getBookBorrowError := bookBorrowAPIConfig.DB.GetBookBorrow(request.Context(), bookId)
 
 	if getBookBorrowError != nil && getBookBorrowError != sql.ErrNoRows {
-		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error issuing book: %s", getBookBorrowError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("error issuing book: %s", getBookBorrowError))
 
 		return
 	} else if getBookBorrowError == nil {
@@ -61,7 +61,7 @@ func (bookBorrowAPIConfig *BookBorrowAPIConfig) IssueBook(writer http.ResponseWr
 	issueBook, issueBookError := bookBorrowAPIConfig.DB.IssueBook(request.Context(), issueBookParams)
 
 	if issueBookError != nil {
-		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error issuing book: %s", issueBookError))
+		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("error issuing book: %s", issueBookError))
 
 		return
 	}
@@ -74,7 +74,7 @@ func (bookBorrowAPIConfig *BookBorrowAPIConfig) ReturnBook(writer http.ResponseW
 	bookBorrowId, parseBookBorrowIdError := uuid.Parse(vars["bookBorrowId"])
 
 	if parseBookBorrowIdError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, "Invalid book borrow id")
+		common.ErrorResponse(writer, http.StatusBadRequest, "invalid book borrow id")
 
 		return
 	}
