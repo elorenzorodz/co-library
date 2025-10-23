@@ -48,12 +48,12 @@ func (bookAPIConfig *BookAPIConfig) CreateBook(writer http.ResponseWriter, reque
 	subscribers, getSubscribersErrors := bookAPIConfig.DB.GetUsersBySubscriberID(request.Context(), userId)
 
 	if getSubscribersErrors != nil {
-		log.Printf("Failed to get subscribers for new book alert: %s", getSubscribersErrors)
+		log.Printf("failed to get subscribers for new book alert: %s", getSubscribersErrors)
 	} else {
 		senderUser, getUserError := bookAPIConfig.DB.GetUserByID(request.Context(), userId)
 
 		if getUserError != nil {
-			log.Printf("Failed to get book owner details: %s", getUserError)
+			log.Printf("failed to get book owner details: %s", getUserError)
 		} else {
 			go users.DispatchNewBookAlertsSync(upsertBookParameters.Title, subscribers, senderUser, bookAPIConfig.APIConfig.MailgunAPIKey, bookAPIConfig.APIConfig.MailgunSendingDomain)
 		}

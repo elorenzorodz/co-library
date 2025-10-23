@@ -134,7 +134,7 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 	signedToken, signedStringError := newToken.SignedString(userAPIConfig.APIConfig.JWTSigningKey)
 	
 	if signedStringError != nil {
-		log.Printf("Signing error: %v", signedStringError)
+		log.Printf("signing error: %v", signedStringError)
 		common.ErrorResponse(writer, http.StatusInternalServerError, "failed to login, Please try again in a few minutes")
 
 		return

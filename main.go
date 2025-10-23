@@ -21,7 +21,7 @@ import (
 
 func main() {
 	if envFileLoadError := godotenv.Load(".env.dev"); envFileLoadError != nil {
-		log.Fatal("Error loading .env file:", envFileLoadError)
+		log.Fatal("error loading .env file:", envFileLoadError)
 	}
 
 	envConfig := common.LoadEnvConfig()
@@ -29,13 +29,13 @@ func main() {
 	publicBytes, readPublicKeyError := os.ReadFile("public.pem")
 	
     if readPublicKeyError != nil {
-        log.Fatal("Error reading public.pem:", readPublicKeyError)
+        log.Fatal("error reading public.pem:", readPublicKeyError)
     }
 
     publicKey, parsingPublicKeyError := jwt.ParseECPublicKeyFromPEM(publicBytes)
 
     if parsingPublicKeyError != nil {
-        log.Fatal("Error parsing public key:", parsingPublicKeyError)
+        log.Fatal("error parsing public key:", parsingPublicKeyError)
     }
 
 	privateBytes, readPrivateKeyError := os.ReadFile("private.pem")
@@ -106,7 +106,7 @@ func main() {
 	muxRouter.HandleFunc(routeAPIPrefix + "/users/subscribers", middleware.Authorization(&userSubscriberAPIConfig.APIConfig, userSubscriberAPIConfig.GetUserSubscribers)).Methods("GET")
 	muxRouter.HandleFunc(routeAPIPrefix + "/users/subscriptions", middleware.Authorization(&userSubscriberAPIConfig.APIConfig, userSubscriberAPIConfig.GetUserSubscriptions)).Methods("GET")
 
-	log.Printf("Server starting on port %v", envConfig.Port)
+	log.Printf("server starting on port %v", envConfig.Port)
 
 	server := &http.Server{
 		Handler: muxRouter,

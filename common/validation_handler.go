@@ -14,7 +14,7 @@ func IsEmailValid(email string) bool {
 	emailRegex, emailValidationError := regexp.MatchString(`^[A-Za-z0-9]+([._\-][A-Za-z0-9]+)*@[A-Za-z0-9]+([\-\.][A-Za-z0-9]+)*\.[A-Za-z]{2,15}$`, email)
 
 	if emailValidationError != nil {
-		log.Printf("Invalid email: %s", emailValidationError)
+		log.Printf("invalid email: %s", emailValidationError)
 	}
 
 	return emailRegex
@@ -55,7 +55,7 @@ func ValidateJWTAndGetEmailClaim(signedToken string, publicKey interface{}) (str
 	})
 
 	if parsedTokenError != nil {
-		log.Printf("Token parse error: %s", parsedTokenError)
+		log.Printf("token parse error: %s", parsedTokenError)
 
 		return "", fmt.Errorf("token parse error: %s", parsedTokenError)
 	}
@@ -64,7 +64,7 @@ func ValidateJWTAndGetEmailClaim(signedToken string, publicKey interface{}) (str
 		emailClaim, exists := claims["email"]
 
 		if !exists {
-			log.Println("Email claim not found")
+			log.Println("email claim not found")
 
 			return "", errors.New("invalid token")
 		}
@@ -72,7 +72,7 @@ func ValidateJWTAndGetEmailClaim(signedToken string, publicKey interface{}) (str
 		email, ok := emailClaim.(string)
 
 		if !ok {
-			log.Println("Email claim is not a string")
+			log.Println("email claim is not a string")
 
 			return "", errors.New("invalid token")
 		}

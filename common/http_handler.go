@@ -44,7 +44,7 @@ func JSONResponse(writer http.ResponseWriter, code int, payload interface{}) {
 	data, jsonMarshalError := json.Marshal(payload)
 
 	if jsonMarshalError != nil {
-		log.Printf("Failed to marshal JSON response: %v", payload)
+		log.Printf("failed to marshal JSON response: %v", payload)
 		writer.WriteHeader(http.StatusInternalServerError)
 
 		return
@@ -58,7 +58,7 @@ func JSONResponse(writer http.ResponseWriter, code int, payload interface{}) {
 func ErrorResponse(writer http.ResponseWriter, code int, message string) {
 	// Log to server on 5XX status codes.
 	if code > 499 {
-		log.Println("Responding with 5XX error:", message)
+		log.Println("responding with 5XX error:", message)
 	}
 
 	type errorResponse struct {
