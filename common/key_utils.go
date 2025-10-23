@@ -7,7 +7,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func LoadAuthKeys() (signingKey interface{}, validationKey interface{}) {
+func LoadAuthKeys() (parsedPublicKey interface{}, parsedPrivateKey interface{}) {
 	publicBytes, readPublicKeyError := os.ReadFile("public.pem")
 
 	if readPublicKeyError != nil {
@@ -32,5 +32,5 @@ func LoadAuthKeys() (signingKey interface{}, validationKey interface{}) {
 		log.Fatal("parse private key error: ", parsePrivateKeyError)
 	}
 
-	return parsedPublicKey, parsedPrivateKey
+	return
 }
