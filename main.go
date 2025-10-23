@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/elorenzorodz/co-library/book_borrows"
 	"github.com/elorenzorodz/co-library/books"
@@ -13,7 +12,6 @@ import (
 	"github.com/elorenzorodz/co-library/middleware"
 	"github.com/elorenzorodz/co-library/user_subscribers"
 	"github.com/elorenzorodz/co-library/users"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -26,29 +24,7 @@ func main() {
 
 	envConfig := common.LoadEnvConfig()
 
-	publicBytes, readPublicKeyError := os.ReadFile("public.pem")
-	
-    if readPublicKeyError != nil {
-        log.Fatal("error reading public.pem:", readPublicKeyError)
-    }
-
-    publicKey, parsingPublicKeyError := jwt.ParseECPublicKeyFromPEM(publicBytes)
-
-    if parsingPublicKeyError != nil {
-        log.Fatal("error parsing public key:", parsingPublicKeyError)
-    }
-
-	privateBytes, readPrivateKeyError := os.ReadFile("private.pem")
-
-	if readPrivateKeyError != nil {
-		log.Fatal("private key read file error: ", readPrivateKeyError)
-	}
-
-	parsedPrivateKey, parsePrivateKeyError := jwt.ParseECPrivateKeyFromPEM(privateBytes)
-
-	if parsePrivateKeyError != nil {
-		log.Fatal("parse private key error: ", parsePrivateKeyError)
-	}
+	parsedPublicKey, parsedPrivateKey := common.LoadAuthKeys()
 
 	routeAPIPrefix := fmt.Sprintf("/api/%s", envConfig.APIVersion)
 
@@ -58,7 +34,7 @@ func main() {
 
 	apiConfig := common.APIConfig {
 		DB: database,
-		JWTValidationKey: publicKey,
+		JWTValidationKey: parsedPublicKey,
 		JWTSigningKey: parsedPrivateKey,
 		MailgunAPIKey: envConfig.MailgunAPIKey,
 		MailgunSendingDomain: envConfig.MailgunSendingDomain,
