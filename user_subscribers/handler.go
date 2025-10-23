@@ -1,15 +1,13 @@
 package user_subscribers
 
-import (
-	"github.com/elorenzorodz/co-library/internal/database"
-)
+import "github.com/elorenzorodz/co-library/internal/database"
 
 func DatabaseUserSubscriberToUserSubscriberJSON(databaseUserSubscriber database.UserSubscriber) UserSubscriber {
 	return UserSubscriber{
-		ID:            databaseUserSubscriber.ID,
-		CreatedAt:     databaseUserSubscriber.CreatedAt,
-		UpdatedAt:     databaseUserSubscriber.UpdatedAt,
-		UserID:        databaseUserSubscriber.UserID,
+		ID:           databaseUserSubscriber.ID,
+		CreatedAt:    databaseUserSubscriber.CreatedAt,
+		UpdatedAt:    databaseUserSubscriber.UpdatedAt,
+		UserID:       databaseUserSubscriber.UserID,
 		SubscriberID: databaseUserSubscriber.SubscriberID,
 	}
 }

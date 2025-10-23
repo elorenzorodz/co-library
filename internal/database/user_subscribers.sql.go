@@ -36,7 +36,7 @@ func (q *Queries) CreateUserSubscriber(ctx context.Context, arg CreateUserSubscr
 	return i, err
 }
 
-const deleteUserSubscriber = `-- name: DeleteUserSubscriber :exec
+const deleteUserSubscriber = `-- name: DeleteUserSubscriber :execrows
 DELETE FROM user_subscribers WHERE subscriber_id = $1 AND user_id = $2
 `
 
@@ -45,9 +45,34 @@ type DeleteUserSubscriberParams struct {
 	UserID       uuid.UUID
 }
 
-func (q *Queries) DeleteUserSubscriber(ctx context.Context, arg DeleteUserSubscriberParams) error {
-	_, err := q.db.ExecContext(ctx, deleteUserSubscriber, arg.SubscriberID, arg.UserID)
-	return err
+func (q *Queries) DeleteUserSubscriber(ctx context.Context, arg DeleteUserSubscriberParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteUserSubscriber, arg.SubscriberID, arg.UserID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const getUserSubscriber = `-- name: GetUserSubscriber :one
+SELECT id, created_at, updated_at, user_id, subscriber_id FROM user_subscribers WHERE subscriber_id = $1 AND user_id = $2
+`
+
+type GetUserSubscriberParams struct {
+	SubscriberID uuid.UUID
+	UserID       uuid.UUID
+}
+
+func (q *Queries) GetUserSubscriber(ctx context.Context, arg GetUserSubscriberParams) (UserSubscriber, error) {
+	row := q.db.QueryRowContext(ctx, getUserSubscriber, arg.SubscriberID, arg.UserID)
+	var i UserSubscriber
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserID,
+		&i.SubscriberID,
+	)
+	return i, err
 }
 
 const getUserSubscribers = `-- name: GetUserSubscribers :many
