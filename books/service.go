@@ -1,6 +1,7 @@
 package books
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -86,7 +87,11 @@ func (bookAPIConfig *BookAPIConfig) GetBook(writer http.ResponseWriter, request 
 	getBook, getBookError := bookAPIConfig.DB.GetBook(request.Context(), bookId)
 
 	if getBookError != nil {
-		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error getting book: %s", getBookError))
+		if getBookError == sql.ErrNoRows {
+			common.ErrorResponse(writer, http.StatusNotFound, "book not found")
+		} else {
+			common.ErrorResponse(writer, http.StatusInternalServerError, "error getting book details, please try again in a few minutes")
+		}
 
 		return
 	}
@@ -116,15 +121,20 @@ func (bookAPIConfig *BookAPIConfig) UpdateBook(writer http.ResponseWriter, reque
 	}
 
 	updateBookParams := database.UpdateBookParams{
-		ID:     bookId,
 		Title:  upsertBookParameters.Title,
 		Author: upsertBookParameters.Author,
+		ID:     bookId,
+		UserID: userId,
 	}
 
 	updateBook, updateBookError := bookAPIConfig.DB.UpdateBook(request.Context(), updateBookParams)
 
 	if updateBookError != nil {
-		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error updating book: %s", updateBookError))
+		if updateBookError == sql.ErrNoRows {
+			common.ErrorResponse(writer, http.StatusNotFound, "book not found")
+		} else {
+			common.ErrorResponse(writer, http.StatusInternalServerError, "error updating book details, please try again in a few minutes")
+		}
 
 		return
 	}
@@ -147,12 +157,18 @@ func (bookAPIConfig *BookAPIConfig) DeleteBook(writer http.ResponseWriter, reque
 		UserID: userId,
 	}
 
-	deleteBookError := bookAPIConfig.DB.DeleteBook(request.Context(), deleteBookParams)
+	rowsAffected, deleteBookError := bookAPIConfig.DB.DeleteBook(request.Context(), deleteBookParams)
 
 	if deleteBookError != nil {
 		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error deleting book: %s", deleteBookError))
 
 		return
+	}
+
+	if rowsAffected == 0 {
+		common.ErrorResponse(writer, http.StatusNotFound, "Book not found")
+
+        return
 	}
 
 	common.JSONResponse(writer, http.StatusOK, "Book successfully deleted")
@@ -183,7 +199,11 @@ func (bookAPIConfig *BookAPIConfig) BrowseBooksByUserID(writer http.ResponseWrit
 	browseBooks, getBooksError := bookAPIConfig.DB.GetBooks(request.Context(), userId)
 
 	if getBooksError != nil {
-		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error getting books: %s", getBooksError))
+		if getBooksError == sql.ErrNoRows {
+			common.ErrorResponse(writer, http.StatusNotFound, "user not found or has no books")
+		} else {
+			common.ErrorResponse(writer, http.StatusInternalServerError, "error getting books, please try again in a few minutes")
+		}
 
 		return
 	}
