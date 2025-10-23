@@ -1,6 +1,7 @@
 package book_borrows
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 
@@ -15,7 +16,7 @@ func (bookBorrowAPIConfig *BookBorrowAPIConfig) IssueBook(writer http.ResponseWr
 	bookId, parseBookIdError := uuid.Parse(vars["bookId"])
 
 	if parseBookIdError != nil {
-		common.ErrorResponse(writer, http.StatusBadRequest, "Invalid book id")
+		common.ErrorResponse(writer, http.StatusBadRequest, "invalid book id")
 
 		return
 	}
@@ -23,21 +24,30 @@ func (bookBorrowAPIConfig *BookBorrowAPIConfig) IssueBook(writer http.ResponseWr
 	getBook, getBookError := bookBorrowAPIConfig.DB.GetBook(request.Context(), bookId)
 
 	if getBookError != nil {
-		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error getting book details: %s", getBookError))
+		if getBookError == sql.ErrNoRows {
+			common.ErrorResponse(writer, http.StatusNotFound, "book not found")
+		} else {
+			common.ErrorResponse(writer, http.StatusInternalServerError, "failed to get book details, please try again in a few minutes")
+		}
 
 		return
 	}
 
-	getBookBorrow, getBookBorrowError := bookBorrowAPIConfig.DB.GetBookBorrow(request.Context(), bookId)
+	// Borrower cannot borrow their own book.
+	if userId == getBook.UserID {
+		common.ErrorResponse(writer, http.StatusForbidden, "you cannot borrow your own book")
 
-	if getBookBorrowError != nil && getBookBorrowError.Error() != "sql: no rows in result set" {
+		return
+	}
+
+	_, getBookBorrowError := bookBorrowAPIConfig.DB.GetBookBorrow(request.Context(), bookId)
+
+	if getBookBorrowError != nil && getBookBorrowError != sql.ErrNoRows {
 		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error issuing book: %s", getBookBorrowError))
 
 		return
-	}
-
-	if getBookBorrow.BookID == getBook.ID {
-		common.ErrorResponse(writer, http.StatusBadRequest, "Book is not yet returned by another borrower")
+	} else if getBookBorrowError == nil {
+		common.ErrorResponse(writer, http.StatusConflict, "book is currently issued to another borrower")
 
 		return
 	}
@@ -69,10 +79,19 @@ func (bookBorrowAPIConfig *BookBorrowAPIConfig) ReturnBook(writer http.ResponseW
 		return
 	}
 
-	returnBook, returnBookError := bookBorrowAPIConfig.DB.ReturnBook(request.Context(), bookBorrowId)
+	returnBookParams := database.ReturnBookParams {
+		ID: bookBorrowId,
+		BorrowerID: userId,
+	}
+
+	returnBook, returnBookError := bookBorrowAPIConfig.DB.ReturnBook(request.Context(), returnBookParams)
 
 	if returnBookError != nil {
-		common.ErrorResponse(writer, http.StatusInternalServerError, fmt.Sprintf("Error updating book borrow: %s", returnBookError))
+		if returnBookError == sql.ErrNoRows {
+			common.ErrorResponse(writer, http.StatusBadRequest, "failed to return book: record not found, unauthorized, or already returned")
+		} else {
+			common.ErrorResponse(writer, http.StatusInternalServerError, "failed to return book, please try again in a few minutes")
+		}
 
 		return
 	}

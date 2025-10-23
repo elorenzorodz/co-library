@@ -60,12 +60,17 @@ func (q *Queries) IssueBook(ctx context.Context, arg IssueBookParams) (BookBorro
 const returnBook = `-- name: ReturnBook :one
 UPDATE book_borrows 
 SET returned_at = NOW(), updated_at = NOW()
-WHERE id = $1
+WHERE id = $1 AND borrower_id = $2 AND returned_at IS NULL
 RETURNING id, issued_at, returned_at, created_at, updated_at, book_id, borrower_id
 `
 
-func (q *Queries) ReturnBook(ctx context.Context, id uuid.UUID) (BookBorrow, error) {
-	row := q.db.QueryRowContext(ctx, returnBook, id)
+type ReturnBookParams struct {
+	ID         uuid.UUID
+	BorrowerID uuid.UUID
+}
+
+func (q *Queries) ReturnBook(ctx context.Context, arg ReturnBookParams) (BookBorrow, error) {
+	row := q.db.QueryRowContext(ctx, returnBook, arg.ID, arg.BorrowerID)
 	var i BookBorrow
 	err := row.Scan(
 		&i.ID,
