@@ -12,6 +12,7 @@ type EnvConfig struct {
 
 type APIConfig struct {
 	DB                   *database.Queries
+	JWTValidationKey	 interface{}
 	JWTSigningKey        interface{}
 	MailgunAPIKey        string
 	MailgunSendingDomain string
