@@ -27,7 +27,7 @@ func main() {
 	envConfig := common.LoadEnvConfig()
 
 	publicBytes, readPublicKeyError := os.ReadFile("public.pem")
-
+	
     if readPublicKeyError != nil {
         log.Fatal("Error reading public.pem:", readPublicKeyError)
     }
@@ -38,6 +38,18 @@ func main() {
         log.Fatal("Error parsing public key:", parsingPublicKeyError)
     }
 
+	privateBytes, readPrivateKeyError := os.ReadFile("private.pem")
+
+	if readPrivateKeyError != nil {
+		log.Fatal("private key read file error: ", readPrivateKeyError)
+	}
+
+	parsedPrivateKey, parsePrivateKeyError := jwt.ParseECPrivateKeyFromPEM(privateBytes)
+
+	if parsePrivateKeyError != nil {
+		log.Fatal("parse private key error: ", parsePrivateKeyError)
+	}
+
 	routeAPIPrefix := fmt.Sprintf("/api/%s", envConfig.APIVersion)
 
 	dbConnection := common.OpenDBConnection(envConfig.DBUrl)
@@ -46,7 +58,8 @@ func main() {
 
 	apiConfig := common.APIConfig {
 		DB: database,
-		JWTSigningKey: publicKey,
+		JWTValidationKey: publicKey,
+		JWTSigningKey: parsedPrivateKey,
 		MailgunAPIKey: envConfig.MailgunAPIKey,
 		MailgunSendingDomain: envConfig.MailgunSendingDomain,
 	}

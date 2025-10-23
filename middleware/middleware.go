@@ -20,7 +20,7 @@ func Authorization(apiConfig *common.APIConfig, handler AuthHandler) http.Handle
 			return
 		}
 
-		email, extractEmailClaimError := common.ValidateJWTAndGetEmailClaim(jwt, apiConfig.JWTSigningKey)
+		email, extractEmailClaimError := common.ValidateJWTAndGetEmailClaim(jwt, apiConfig.JWTValidationKey)
 
 		if extractEmailClaimError != nil {
 			common.ErrorResponse(writer, http.StatusForbidden, fmt.Sprintf("Authentication error: %s", extractEmailClaimError))
