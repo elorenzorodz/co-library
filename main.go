@@ -47,6 +47,7 @@ func main() {
 	userAPIConfig := users.UserAPIConfig {
 		APIConfig: apiConfig,
 	}
+	userAPIConfig.APIConfig.DB = database
 
 	muxRouter.HandleFunc(routeAPIPrefix + "/user/register", userAPIConfig.CreateUser).Methods("POST")
 	muxRouter.HandleFunc(routeAPIPrefix + "/user/login", userAPIConfig.Login).Methods("POST")
@@ -55,6 +56,7 @@ func main() {
 	bookAPIConfig := books.BookAPIConfig {
 		APIConfig: apiConfig,
 	}
+	bookAPIConfig.APIConfig.DB = database
 
 	muxRouter.HandleFunc(routeAPIPrefix + "/books", middleware.Authorization(&bookAPIConfig.APIConfig, bookAPIConfig.CreateBook)).Methods("POST")
 	muxRouter.HandleFunc(routeAPIPrefix + "/books", middleware.Authorization(&bookAPIConfig.APIConfig, bookAPIConfig.GetBooks)).Methods("GET")
@@ -68,6 +70,7 @@ func main() {
 	bookBorrowAPIConfig := book_borrows.BookBorrowAPIConfig {
 		APIConfig: apiConfig,
 	}
+	bookBorrowAPIConfig.APIConfig.DB = database
 
 	muxRouter.HandleFunc(routeAPIPrefix + "/books/issue/{bookId}", middleware.Authorization(&bookBorrowAPIConfig.APIConfig, bookBorrowAPIConfig.IssueBook)).Methods("POST")
 	muxRouter.HandleFunc(routeAPIPrefix + "/books/return/{bookBorrowId}", middleware.Authorization(&bookBorrowAPIConfig.APIConfig, bookBorrowAPIConfig.ReturnBook)).Methods("POST")
@@ -76,6 +79,7 @@ func main() {
 	userSubscriberAPIConfig := user_subscribers.UserSubscriberAPIConfig {
 		APIConfig: apiConfig,
 	}
+	userSubscriberAPIConfig.APIConfig.DB = database
 
 	muxRouter.HandleFunc(routeAPIPrefix + "/users/subscribe/{userId}", middleware.Authorization(&userSubscriberAPIConfig.APIConfig, userSubscriberAPIConfig.CreateUserSubscriber)).Methods("POST")
 	muxRouter.HandleFunc(routeAPIPrefix + "/users/unsubscribe/{userId}", middleware.Authorization(&userSubscriberAPIConfig.APIConfig, userSubscriberAPIConfig.DeleteUserSubscriber)).Methods("DELETE")

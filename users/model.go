@@ -29,8 +29,8 @@ type CreateUserParameters struct {
 }
 
 type UserLoginParameters struct {
-	Email     string `json:"email"`
-	Password  string `json:"password"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 type UserAuthorized struct {
