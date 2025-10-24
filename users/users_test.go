@@ -166,6 +166,7 @@ func TestLogin(tTesting *testing.T) {
 		Password:  string(hashedPassword),
 	}
 
+	// This is a test private key only.
 	privateKey, _ := jwt.ParseECPrivateKeyFromPEM([]byte(`-----BEGIN PRIVATE KEY-----
 MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg7zcfAR2TkjaT+h2M
 MoI7ZWp3iJEgZSM8l50WrXaoFKuhRANCAAQDHEeHaLjjx7k5XQ23iTnGWSgwWIuK
