@@ -350,7 +350,7 @@ func TestUpdateBook(tTesting *testing.T) {
 		}
 	})
 
-	// 3. Invalid input/body (e.g., missing Title)
+	// 3. Invalid input/body
 	tTesting.Run("InvalidInput", func(t *testing.T) {
 		mockQueries := &MockQueries{BaseMock: common.NewBaseMock()}
 
