@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/elorenzorodz/co-library/common"
@@ -24,6 +25,12 @@ func (bookAPIConfig *BookAPIConfig) CreateBook(writer http.ResponseWriter, reque
 	if decoderError != nil {
 		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("error parsing JSON: %s", decoderError))
 
+		return
+	}
+
+	if strings.TrimSpace(upsertBookParameters.Title) == "" || strings.TrimSpace(upsertBookParameters.Author) == "" {
+		common.ErrorResponse(writer, http.StatusBadRequest, "title and author are required")
+		
 		return
 	}
 

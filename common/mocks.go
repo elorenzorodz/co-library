@@ -8,22 +8,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type BaseMock struct {
-	*UserMock
-	*BookMock
-	*BookBorrowMock
-	*UserSubscriberMock
-}
-
-func NewBaseMock() *BaseMock {
-	return &BaseMock{
-		UserMock:           &UserMock{},
-		BookMock:           &BookMock{},
-		BookBorrowMock:     &BookBorrowMock{},
-		UserSubscriberMock: &UserSubscriberMock{},
-	}
-}
-
 type UserMock struct{}
 
 func (m *UserMock) CreateUser(ctx context.Context, arg database.CreateUserParams) (database.User, error) {
@@ -64,7 +48,6 @@ func (m *BookMock) UpdateBook(ctx context.Context, arg database.UpdateBookParams
 }
 
 func (m *BookMock) DeleteBook(ctx context.Context, arg database.DeleteBookParams) (int64, error) {
-	// Safe write stub: return 0 rows affected
 	return 0, nil
 }
 
@@ -106,4 +89,20 @@ func (m *UserSubscriberMock) GetUsersBySubscriberID(ctx context.Context, userID 
 
 func (m *UserSubscriberMock) DeleteUserSubscriber(ctx context.Context, arg database.DeleteUserSubscriberParams) (int64, error) {
 	return 0, nil
+}
+
+type BaseMock struct {
+	*UserMock
+	*BookMock
+	*BookBorrowMock
+	*UserSubscriberMock
+}
+
+func NewBaseMock() *BaseMock {
+	return &BaseMock{
+		UserMock:           &UserMock{},
+		BookMock:           &BookMock{},
+		BookBorrowMock:     &BookBorrowMock{},
+		UserSubscriberMock: &UserSubscriberMock{},
+	}
 }
