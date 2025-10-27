@@ -127,6 +127,12 @@ func (bookAPIConfig *BookAPIConfig) UpdateBook(writer http.ResponseWriter, reque
 		return
 	}
 
+	if strings.TrimSpace(upsertBookParameters.Title) == "" || strings.TrimSpace(upsertBookParameters.Author) == "" {
+		common.ErrorResponse(writer, http.StatusBadRequest, "title and author are required")
+		
+		return
+	}
+
 	updateBookParams := database.UpdateBookParams{
 		Title:  upsertBookParameters.Title,
 		Author: upsertBookParameters.Author,
