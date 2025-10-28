@@ -15,11 +15,11 @@ func (m *UserMock) CreateUser(ctx context.Context, arg database.CreateUserParams
 }
 
 func (m *UserMock) GetUserByEmail(ctx context.Context, email string) (database.User, error) {
-	return database.User{}, sql.ErrNoRows // Default: Not Found
+	return database.User{}, sql.ErrNoRows
 }
 
 func (m *UserMock) GetUserByID(ctx context.Context, id uuid.UUID) (database.User, error) {
-	return database.User{}, sql.ErrNoRows // Default: Not Found
+	return database.User{}, sql.ErrNoRows
 }
 
 type BookMock struct{}
@@ -29,17 +29,14 @@ func (m *BookMock) CreateBook(ctx context.Context, arg database.CreateBookParams
 }
 
 func (m *BookMock) GetBook(ctx context.Context, id uuid.UUID) (database.Book, error) {
-	// Safe read stub: return zero value and ErrNoRows
 	return database.Book{}, sql.ErrNoRows
 }
 
 func (m *BookMock) GetBooks(ctx context.Context, userID uuid.UUID) ([]database.Book, error) {
-	// Safe read stub: return empty slice
 	return []database.Book{}, nil
 }
 
 func (m *BookMock) BrowseBooks(ctx context.Context) ([]database.Book, error) {
-	// Safe read stub: return empty slice
 	return []database.Book{}, nil
 }
 
