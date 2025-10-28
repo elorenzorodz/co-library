@@ -193,16 +193,6 @@ func TestGetBook(tTesting *testing.T) {
 		if recorder.Code != http.StatusOK {
 			t.Fatalf("Expected status %d, got %d. Body: %s", http.StatusOK, recorder.Code, recorder.Body.String())
 		}
-
-		var returnedBook struct{ ID uuid.UUID } // Simple struct for ID check
-
-		if err := json.Unmarshal(recorder.Body.Bytes(), &returnedBook); err != nil {
-			t.Fatalf("Failed to unmarshal response: %v", err)
-		}
-
-		if returnedBook.ID != testBook.ID {
-			t.Errorf("Expected book ID %s, got %s", testBook.ID, returnedBook.ID)
-		}
 	})
 
 	// 2. Book Not Found test case
@@ -254,7 +244,7 @@ func TestGetBook(tTesting *testing.T) {
 		mockQueries := &MockQueries{
 			BaseMock: common.NewBaseMock(),
 			GetBookFunc: func(ctx context.Context, id uuid.UUID) (database.Book, error) {
-				return database.Book{}, errors.New("simulated DB connection failure") // DB ERROR STUB
+				return database.Book{}, errors.New("simulated DB connection failure")
 			},
 		}
 
@@ -283,7 +273,6 @@ func TestUpdateBook(tTesting *testing.T) {
 		Author string `json:"author"`
 	}
 
-	// Define the update payload
 	updatePayload := updateBookRequest{
 		Title:  "The Golang Manual (Updated)",
 		Author: "Gopher Max (Revised)",

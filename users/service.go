@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/elorenzorodz/co-library/common"
@@ -22,6 +23,13 @@ func (userAPIConfig *UserAPIConfig) CreateUser(writer http.ResponseWriter, reque
 
 	if decoderError != nil {
 		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("error parsing JSON: %s", decoderError))
+
+		return
+	}
+
+	if strings.TrimSpace(createUserParameters.FirstName) == "" || strings.TrimSpace(createUserParameters.LastName) == "" || 
+		strings.TrimSpace(createUserParameters.Email) == "" || strings.TrimSpace(createUserParameters.Password) == "" {
+		common.ErrorResponse(writer, http.StatusBadRequest, "first_name, last_name, email and password fields are required")
 
 		return
 	}
@@ -96,6 +104,12 @@ func (userAPIConfig *UserAPIConfig) Login(writer http.ResponseWriter, request *h
 
 	if decoderError != nil {
 		common.ErrorResponse(writer, http.StatusBadRequest, fmt.Sprintf("error parsing JSON: %s", decoderError))
+
+		return
+	}
+
+	if strings.TrimSpace(userLoginParameters.Email) == "" || strings.TrimSpace(userLoginParameters.Password) == "" {
+		common.ErrorResponse(writer, http.StatusBadRequest, "email and password fields are required")
 
 		return
 	}
