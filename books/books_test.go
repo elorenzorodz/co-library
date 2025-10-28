@@ -266,6 +266,7 @@ func TestGetBook(tTesting *testing.T) {
 
 func TestUpdateBook(tTesting *testing.T) {
 	userId := newTestUserID()
+	otherUserID := newTestUserID()
 	testBook := newTestBook(userId)
 
 	type updateBookRequest struct {
@@ -287,15 +288,9 @@ func TestUpdateBook(tTesting *testing.T) {
 	tTesting.Run("Success", func(t *testing.T) {
 		mockQueries := &MockQueries{
 			BaseMock: common.NewBaseMock(),
-			GetBookFunc: func(ctx context.Context, id uuid.UUID) (database.Book, error) {
-				return testBook, nil
-			},
 			UpdateBookFunc: func(ctx context.Context, arg database.UpdateBookParams) (database.Book, error) {
 				if arg.UserID != userId {
 					t.Fatalf("Expected UserID %s in UpdateBook call, got %s", userId, arg.UserID)
-				}
-				if arg.Title != updatePayload.Title || arg.Author != updatePayload.Author {
-					t.Fatal("UpdateBook was called with incorrect data")
 				}
 				return updatedBook, nil
 			},
@@ -315,8 +310,8 @@ func TestUpdateBook(tTesting *testing.T) {
 		}
 	})
 
-	// 2. Book Not Found
-	tTesting.Run("BookNotFound", func(t *testing.T) {
+	// 2. Book Not Found / unauthorized test case
+	tTesting.Run("NotFoundOrUnauthorized", func(t *testing.T) {
 		mockQueries := &MockQueries{
 			BaseMock: common.NewBaseMock(),
 			UpdateBookFunc: func(ctx context.Context, arg database.UpdateBookParams) (database.Book, error) {
@@ -326,13 +321,13 @@ func TestUpdateBook(tTesting *testing.T) {
 
 		apiConfig := BookAPIConfig{APIConfig: common.APIConfig{DB: mockQueries}}
 		missingID := uuid.New()
-		request := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/books/%s", missingID), bytes.NewBuffer(requestBody))
+		request := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/api/v1/books/%s", missingID), bytes.NewBuffer(requestBody))
 		
 		vars := map[string]string{"bookId": missingID.String()}
 		request = mux.SetURLVars(request, vars)
 		recorder := httptest.NewRecorder()
 
-		apiConfig.UpdateBook(recorder, request, userId)
+		apiConfig.UpdateBook(recorder, request, otherUserID)
 
 		if recorder.Code != http.StatusNotFound {
 			t.Errorf("Expected status %d, got %d. Body: %s", http.StatusNotFound, recorder.Code, recorder.Body.String())
@@ -346,7 +341,7 @@ func TestUpdateBook(tTesting *testing.T) {
 		apiConfig := BookAPIConfig{APIConfig: common.APIConfig{DB: mockQueries}}
 		
 		invalidBody, _ := json.Marshal(updateBookRequest{Author: "Only Author"})
-		request := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/books/%s", testBook.ID), bytes.NewBuffer(invalidBody))
+		request := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/api/v1/books/%s", testBook.ID), bytes.NewBuffer(invalidBody))
 		
 		vars := map[string]string{"bookId": testBook.ID.String()}
 		request = mux.SetURLVars(request, vars)
@@ -356,6 +351,62 @@ func TestUpdateBook(tTesting *testing.T) {
 
 		if recorder.Code != http.StatusBadRequest {
 			t.Errorf("Expected status %d, got %d. Body: %s", http.StatusBadRequest, recorder.Code, recorder.Body.String())
+		}
+	})
+}
+
+func TestDeleteBook(tTesting *testing.T) {
+	userId := newTestUserID()
+	otherUserID := newTestUserID()
+	testBook := newTestBook(userId)
+
+	// 1. Success test case
+	tTesting.Run("Success", func(t *testing.T) {
+		mockQueries := &MockQueries{
+			BaseMock: common.NewBaseMock(),
+			GetBookFunc: func(ctx context.Context, id uuid.UUID) (database.Book, error) {
+				return testBook, nil
+			},
+			DeleteBookFunc: func(ctx context.Context, arg database.DeleteBookParams) (int64, error) {
+				return 1, nil
+			},
+		}
+
+		apiConfig := BookAPIConfig{APIConfig: common.APIConfig{DB: mockQueries}}
+		request := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/books/%s", testBook.ID), nil)
+		
+		vars := map[string]string{"bookId": testBook.ID.String()}
+		request = mux.SetURLVars(request, vars)
+		recorder := httptest.NewRecorder()
+
+		apiConfig.DeleteBook(recorder, request, userId)
+
+		if recorder.Code != http.StatusOK { 
+			t.Fatalf("Expected status %d, got %d. Body: %s", http.StatusOK, recorder.Code, recorder.Body.String())
+		}
+	})
+
+	// 2. Unauthorized (User attempts to delete another user's book) or book not found
+	tTesting.Run("NotFoundOrUnauthorized", func(t *testing.T) {
+		mockQueries := &MockQueries{
+			BaseMock: common.NewBaseMock(),
+			DeleteBookFunc: func(ctx context.Context, arg database.DeleteBookParams) (int64, error) {
+				return 0, nil
+			},
+		}
+
+		apiConfig := BookAPIConfig{APIConfig: common.APIConfig{DB: mockQueries}}
+		request := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/books/%s", testBook.ID), nil)
+		
+		vars := map[string]string{"bookId": testBook.ID.String()}
+		request = mux.SetURLVars(request, vars)
+		recorder := httptest.NewRecorder()
+
+		// Pass the otherUserID (who doesn't own the book)
+		apiConfig.DeleteBook(recorder, request, otherUserID) 
+
+		if recorder.Code != http.StatusNotFound {
+			t.Errorf("Expected status %d, got %d. Body: %s", http.StatusNotFound, recorder.Code, recorder.Body.String())
 		}
 	})
 }

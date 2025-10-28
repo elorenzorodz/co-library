@@ -73,7 +73,7 @@ func main() {
 	bookBorrowAPIConfig.APIConfig.DB = database
 
 	muxRouter.HandleFunc(routeAPIPrefix + "/books/issue/{bookId}", middleware.Authorization(&bookBorrowAPIConfig.APIConfig, bookBorrowAPIConfig.IssueBook)).Methods("POST")
-	muxRouter.HandleFunc(routeAPIPrefix + "/books/return/{bookBorrowId}", middleware.Authorization(&bookBorrowAPIConfig.APIConfig, bookBorrowAPIConfig.ReturnBook)).Methods("POST")
+	muxRouter.HandleFunc(routeAPIPrefix + "/books/return/{bookBorrowId}", middleware.Authorization(&bookBorrowAPIConfig.APIConfig, bookBorrowAPIConfig.ReturnBook)).Methods("PATCH")
 
 	// User subscrbers endpoints.
 	userSubscriberAPIConfig := user_subscribers.UserSubscriberAPIConfig {
