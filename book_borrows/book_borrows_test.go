@@ -267,3 +267,103 @@ func TestIssueBook(tTesting *testing.T) {
 		}
 	})
 }
+
+
+func TestReturnBook(tTesting *testing.T) {
+	borrowerID := newTestUserID()
+	bookID := uuid.New()
+	testBorrowID := uuid.New()
+	returnedBorrow := newTestBookBorrow(bookID, borrowerID)
+	returnedBorrow.ReturnedAt.Valid = true
+	returnedBorrow.ReturnedAt.Time = time.Now()
+
+	// 1. Success: book is successfully returned.
+	tTesting.Run("Success", func(t *testing.T) {
+		mockQueries := &MockQueries{
+			BaseMock: common.NewBaseMock(),
+			ReturnBookFunc: func(ctx context.Context, arg database.ReturnBookParams) (database.BookBorrow, error) {
+				if arg.ID != testBorrowID || arg.BorrowerID != borrowerID {
+					t.Fatalf("ReturnBook called with wrong IDs")
+				}
+				return returnedBorrow, nil
+			},
+		}
+
+		apiConfig := BookBorrowAPIConfig{APIConfig: common.APIConfig{DB: mockQueries}}
+		request := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/api/v1/book_borrows/return/%s", testBorrowID), nil)
+
+		vars := map[string]string{"bookBorrowId": testBorrowID.String()}
+		request = mux.SetURLVars(request, vars)
+		recorder := httptest.NewRecorder()
+
+		apiConfig.ReturnBook(recorder, request, borrowerID)
+
+		if recorder.Code != http.StatusOK {
+			t.Errorf("Expected status %d, got %d. Body: %s", http.StatusOK, recorder.Code, recorder.Body.String())
+		}
+	})
+
+	// 2. Failure: invalid borrow ID format
+	tTesting.Run("InvalidBorrowIDFormat", func(t *testing.T) {
+		mockQueries := &MockQueries{BaseMock: common.NewBaseMock()}
+		apiConfig := BookBorrowAPIConfig{APIConfig: common.APIConfig{DB: mockQueries}}
+
+		request := httptest.NewRequest(http.MethodPatch, "/api/v1/book_borrows/return/not-a-uuid", nil)
+		vars := map[string]string{"bookBorrowId": "not-a-uuid"}
+		request = mux.SetURLVars(request, vars)
+		recorder := httptest.NewRecorder()
+
+		apiConfig.ReturnBook(recorder, request, borrowerID)
+
+		if recorder.Code != http.StatusBadRequest {
+			t.Errorf("Expected status %d, got %d. Body: %s", http.StatusBadRequest, recorder.Code, recorder.Body.String())
+		}
+	})
+
+	// 3. Failure: not found, unauthorized, or already returned (sql.ErrNoRows)
+	tTesting.Run("NotFoundOrUnauthorized", func(t *testing.T) {
+		mockQueries := &MockQueries{
+			BaseMock: common.NewBaseMock(),
+			ReturnBookFunc: func(ctx context.Context, arg database.ReturnBookParams) (database.BookBorrow, error) {
+				return database.BookBorrow{}, sql.ErrNoRows
+			},
+		}
+
+		apiConfig := BookBorrowAPIConfig{APIConfig: common.APIConfig{DB: mockQueries}}
+		request := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/api/v1/book_borrows/return/%s", testBorrowID), nil)
+
+		vars := map[string]string{"bookBorrowId": testBorrowID.String()}
+		request = mux.SetURLVars(request, vars)
+		recorder := httptest.NewRecorder()
+
+		// Note: The handler returns 400 Bad Request for this specific DB error
+		apiConfig.ReturnBook(recorder, request, borrowerID)
+
+		if recorder.Code != http.StatusBadRequest {
+			t.Errorf("Expected status %d, got %d. Body: %s", http.StatusBadRequest, recorder.Code, recorder.Body.String())
+		}
+	})
+
+	// 4. Failure: Internal Error on ReturnBook
+	tTesting.Run("ReturnBookDBError", func(t *testing.T) {
+		mockQueries := &MockQueries{
+			BaseMock: common.NewBaseMock(),
+			ReturnBookFunc: func(ctx context.Context, arg database.ReturnBookParams) (database.BookBorrow, error) {
+				return database.BookBorrow{}, errors.New("simulated DB error on return book") // DB error
+			},
+		}
+
+		apiConfig := BookBorrowAPIConfig{APIConfig: common.APIConfig{DB: mockQueries}}
+		request := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/api/v1/book_borrows/return/%s", testBorrowID), nil)
+
+		vars := map[string]string{"bookBorrowId": testBorrowID.String()}
+		request = mux.SetURLVars(request, vars)
+		recorder := httptest.NewRecorder()
+
+		apiConfig.ReturnBook(recorder, request, borrowerID)
+
+		if recorder.Code != http.StatusInternalServerError {
+			t.Errorf("Expected status %d, got %d. Body: %s", http.StatusInternalServerError, recorder.Code, recorder.Body.String())
+		}
+	})
+}
