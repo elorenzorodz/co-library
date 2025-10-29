@@ -127,7 +127,7 @@ func TestCreateUserSubscriber(tTesting *testing.T) {
 		}
 	})
 
-	// 2. Failure: Invalid User ID Format
+	// 2. Failure: invalid user ID format
 	tTesting.Run("InvalidUserIDFormat", func(t *testing.T) {
 		mockDB := &MockUserSubscribersDB{BaseMock: common.NewBaseMock()}
 		apiConfig := UserSubscriberAPIConfig{APIConfig: common.APIConfig{DB: mockDB}}
@@ -144,7 +144,7 @@ func TestCreateUserSubscriber(tTesting *testing.T) {
 		}
 	})
 
-	// 3. Failure: Cannot Subscribe to Self
+	// 3. Failure: cannot subscribe to self
 	tTesting.Run("SubscribeToSelf", func(t *testing.T) {
 		mockDB := &MockUserSubscribersDB{BaseMock: common.NewBaseMock()}
 		apiConfig := UserSubscriberAPIConfig{APIConfig: common.APIConfig{DB: mockDB}}
@@ -161,7 +161,7 @@ func TestCreateUserSubscriber(tTesting *testing.T) {
 		}
 	})
 
-	// 4. Failure: Target User Not Found
+	// 4. Failure: target user not found
 	tTesting.Run("TargetUserNotFound", func(t *testing.T) {
 		mockDB := &MockUserSubscribersDB{
 			BaseMock: common.NewBaseMock(),
@@ -183,7 +183,7 @@ func TestCreateUserSubscriber(tTesting *testing.T) {
 		}
 	})
 
-	// 5. Failure: Already Subscribed
+	// 5. Failure: already subscribed
 	tTesting.Run("AlreadySubscribed", func(t *testing.T) {
 		mockDB := &MockUserSubscribersDB{
 			BaseMock: common.NewBaseMock(),
@@ -212,7 +212,7 @@ func TestCreateUserSubscriber(tTesting *testing.T) {
 		}
 	})
 
-	// 6. Failure: Internal Error on CreateUserSubscriber
+	// 6. Failure: internal error on CreateUserSubscriber
 	tTesting.Run("CreateDBError", func(t *testing.T) {
 		mockDB := &MockUserSubscribersDB{
 			BaseMock: common.NewBaseMock(),
@@ -234,6 +234,97 @@ func TestCreateUserSubscriber(tTesting *testing.T) {
 		recorder := httptest.NewRecorder()
 
 		apiConfig.CreateUserSubscriber(recorder, request, subscriberID)
+
+		if recorder.Code != http.StatusInternalServerError {
+			t.Errorf("Expected status %d, got %d. Body: %s", http.StatusInternalServerError, recorder.Code, recorder.Body.String())
+		}
+	})
+}
+
+func TestDeleteUserSubscriber(tTesting *testing.T) {
+	targetUserID := newTestUserID()
+	subscriberID := newTestUserID()
+
+	// 1. Success: User is successfully unsubscribed.
+	tTesting.Run("Success", func(t *testing.T) {
+		mockDB := &MockUserSubscribersDB{
+			BaseMock: common.NewBaseMock(),
+			DeleteUserSubscriberFunc: func(ctx context.Context, arg database.DeleteUserSubscriberParams) (int64, error) {
+				if arg.UserID != targetUserID || arg.SubscriberID != subscriberID {
+					t.Fatalf("DeleteUserSubscriber called with wrong IDs")
+				}
+				return 1, nil
+			},
+		}
+
+		apiConfig := UserSubscriberAPIConfig{APIConfig: common.APIConfig{DB: mockDB}}
+		request := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/subscribers/users/%s", targetUserID), nil)
+		vars := map[string]string{"userId": targetUserID.String()}
+		request = mux.SetURLVars(request, vars)
+		recorder := httptest.NewRecorder()
+
+		apiConfig.DeleteUserSubscriber(recorder, request, subscriberID)
+
+		if recorder.Code != http.StatusOK {
+			t.Errorf("Expected status %d, got %d. Body: %s", http.StatusOK, recorder.Code, recorder.Body.String())
+		}
+	})
+
+	// 2. Failure: Invalid user ID format
+	tTesting.Run("InvalidUserIDFormat", func(t *testing.T) {
+		mockDB := &MockUserSubscribersDB{BaseMock: common.NewBaseMock()}
+		apiConfig := UserSubscriberAPIConfig{APIConfig: common.APIConfig{DB: mockDB}}
+
+		request := httptest.NewRequest(http.MethodDelete, "/api/v1/subscribers/users/not-a-uuid", nil)
+		vars := map[string]string{"userId": "not-a-uuid"}
+		request = mux.SetURLVars(request, vars)
+		recorder := httptest.NewRecorder()
+
+		apiConfig.DeleteUserSubscriber(recorder, request, subscriberID)
+
+		if recorder.Code != http.StatusBadRequest {
+			t.Errorf("Expected status %d, got %d. Body: %s", http.StatusBadRequest, recorder.Code, recorder.Body.String())
+		}
+	})
+
+	// 3. Failure: Subscription not found/unauthorized
+	tTesting.Run("SubscriptionNotFound", func(t *testing.T) {
+		mockDB := &MockUserSubscribersDB{
+			BaseMock: common.NewBaseMock(),
+			DeleteUserSubscriberFunc: func(ctx context.Context, arg database.DeleteUserSubscriberParams) (int64, error) {
+				return 0, nil
+			},
+		}
+
+		apiConfig := UserSubscriberAPIConfig{APIConfig: common.APIConfig{DB: mockDB}}
+		request := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/subscribers/users/%s", targetUserID), nil)
+		vars := map[string]string{"userId": targetUserID.String()}
+		request = mux.SetURLVars(request, vars)
+		recorder := httptest.NewRecorder()
+
+		apiConfig.DeleteUserSubscriber(recorder, request, subscriberID)
+
+		if recorder.Code != http.StatusNotFound {
+			t.Errorf("Expected status %d, got %d. Body: %s", http.StatusNotFound, recorder.Code, recorder.Body.String())
+		}
+	})
+
+	// 4. Failure: internal DB error
+	tTesting.Run("DBError", func(t *testing.T) {
+		mockDB := &MockUserSubscribersDB{
+			BaseMock: common.NewBaseMock(),
+			DeleteUserSubscriberFunc: func(ctx context.Context, arg database.DeleteUserSubscriberParams) (int64, error) {
+				return 0, errors.New("simulated DB error on delete")
+			},
+		}
+
+		apiConfig := UserSubscriberAPIConfig{APIConfig: common.APIConfig{DB: mockDB}}
+		request := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/subscribers/users/%s", targetUserID), nil)
+		vars := map[string]string{"userId": targetUserID.String()}
+		request = mux.SetURLVars(request, vars)
+		recorder := httptest.NewRecorder()
+
+		apiConfig.DeleteUserSubscriber(recorder, request, subscriberID)
 
 		if recorder.Code != http.StatusInternalServerError {
 			t.Errorf("Expected status %d, got %d. Body: %s", http.StatusInternalServerError, recorder.Code, recorder.Body.String())
