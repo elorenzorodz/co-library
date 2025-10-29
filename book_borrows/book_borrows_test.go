@@ -25,33 +25,36 @@ type MockQueries struct {
 	ReturnBookFunc    func(ctx context.Context, arg database.ReturnBookParams) (database.BookBorrow, error)
 }
 
-func (mq *MockQueries) GetBook(ctx context.Context, id uuid.UUID) (database.Book, error) {
-	if mq.GetBookFunc != nil {
-		return mq.GetBookFunc(ctx, id)
-	}
-	return mq.BaseMock.GetBook(ctx, id)
-}
-
-func (mq *MockQueries) GetBookBorrow(ctx context.Context, bookID uuid.UUID) (database.BookBorrow, error) {
-	if mq.GetBookBorrowFunc != nil {
-		return mq.GetBookBorrowFunc(ctx, bookID)
+func (mockQueries *MockQueries) GetBook(ctx context.Context, id uuid.UUID) (database.Book, error) {
+	if mockQueries.GetBookFunc != nil {
+		return mockQueries.GetBookFunc(ctx, id)
 	}
 	
-	return database.BookBorrow{}, sql.ErrNoRows
+	return mockQueries.BaseMock.GetBook(ctx, id)
 }
 
-func (mq *MockQueries) IssueBook(ctx context.Context, arg database.IssueBookParams) (database.BookBorrow, error) {
-	if mq.IssueBookFunc != nil {
-		return mq.IssueBookFunc(ctx, arg)
+func (mockQueries *MockQueries) GetBookBorrow(ctx context.Context, bookID uuid.UUID) (database.BookBorrow, error) {
+	if mockQueries.GetBookBorrowFunc != nil {
+		return mockQueries.GetBookBorrowFunc(ctx, bookID)
 	}
-	return database.BookBorrow{}, nil
+	
+	return mockQueries.BaseMock.GetBookBorrow(ctx, bookID)
 }
 
-func (mq *MockQueries) ReturnBook(ctx context.Context, arg database.ReturnBookParams) (database.BookBorrow, error) {
-	if mq.ReturnBookFunc != nil {
-		return mq.ReturnBookFunc(ctx, arg)
+func (mockQueries *MockQueries) IssueBook(ctx context.Context, arg database.IssueBookParams) (database.BookBorrow, error) {
+	if mockQueries.IssueBookFunc != nil {
+		return mockQueries.IssueBookFunc(ctx, arg)
 	}
-	return database.BookBorrow{}, nil
+	
+	return mockQueries.BaseMock.IssueBook(ctx, arg)
+}
+
+func (mockQueries *MockQueries) ReturnBook(ctx context.Context, arg database.ReturnBookParams) (database.BookBorrow, error) {
+	if mockQueries.ReturnBookFunc != nil {
+		return mockQueries.ReturnBookFunc(ctx, arg)
+	}
+	
+	return mockQueries.BaseMock.ReturnBook(ctx, arg)
 }
 
 func newTestUserID() uuid.UUID {
@@ -85,10 +88,12 @@ func TestIssueBook(tTesting *testing.T) {
 	testBook := newTestBook(bookUserId)
 	testBorrow := newTestBookBorrow(testBook.ID, borrowerID)
 
+	base := common.NewBaseMock()
+
 	// 1. Success: book is available and successfully issued.
 	tTesting.Run("Success", func(t *testing.T) {
 		mockQueries := &MockQueries{
-			BaseMock: common.NewBaseMock(),
+			BaseMock: base,
 			GetBookFunc: func(ctx context.Context, id uuid.UUID) (database.Book, error) {
 				return testBook, nil
 			},
@@ -119,7 +124,7 @@ func TestIssueBook(tTesting *testing.T) {
 
 	// 2. Failure: invalid book ID format
 	tTesting.Run("InvalidBookIDFormat", func(t *testing.T) {
-		mockQueries := &MockQueries{BaseMock: common.NewBaseMock()}
+		mockQueries := &MockQueries{BaseMock: base}
 		apiConfig := BookBorrowAPIConfig{APIConfig: common.APIConfig{DB: mockQueries}}
 
 		request := httptest.NewRequest(http.MethodPost, "/api/v1/book_borrows/issue/not-a-uuid", nil)
@@ -137,7 +142,7 @@ func TestIssueBook(tTesting *testing.T) {
 	// 3. Failure: book not found
 	tTesting.Run("BookNotFound", func(t *testing.T) {
 		mockQueries := &MockQueries{
-			BaseMock: common.NewBaseMock(),
+			BaseMock: base,
 			GetBookFunc: func(ctx context.Context, id uuid.UUID) (database.Book, error) {
 				return database.Book{}, sql.ErrNoRows
 			},
@@ -160,7 +165,7 @@ func TestIssueBook(tTesting *testing.T) {
 	// 4. Failure: internal error on GetBook
 	tTesting.Run("GetBookDBError", func(t *testing.T) {
 		mockQueries := &MockQueries{
-			BaseMock: common.NewBaseMock(),
+			BaseMock: base,
 			GetBookFunc: func(ctx context.Context, id uuid.UUID) (database.Book, error) {
 				return database.Book{}, errors.New("simulated DB error on get book") // DB error
 			},
@@ -183,7 +188,7 @@ func TestIssueBook(tTesting *testing.T) {
 	// 5. Failure: borrower is the book owner
 	tTesting.Run("BorrowerIsOwner", func(t *testing.T) {
 		mockQueries := &MockQueries{
-			BaseMock: common.NewBaseMock(),
+			BaseMock: base,
 			GetBookFunc: func(ctx context.Context, id uuid.UUID) (database.Book, error) {
 				return testBook, nil
 			},
@@ -211,7 +216,7 @@ func TestIssueBook(tTesting *testing.T) {
 	// 6. Failure: book already issued
 	tTesting.Run("BookAlreadyIssued", func(t *testing.T) {
 		mockQueries := &MockQueries{
-			BaseMock: common.NewBaseMock(),
+			BaseMock: base,
 			GetBookFunc: func(ctx context.Context, id uuid.UUID) (database.Book, error) {
 				return testBook, nil
 			},
@@ -241,15 +246,15 @@ func TestIssueBook(tTesting *testing.T) {
 	// 7. Failure: internal error on IssueBook creation
 	tTesting.Run("IssueBookDBError", func(t *testing.T) {
 		mockQueries := &MockQueries{
-			BaseMock: common.NewBaseMock(),
+			BaseMock: base,
 			GetBookFunc: func(ctx context.Context, id uuid.UUID) (database.Book, error) {
 				return testBook, nil
 			},
 			GetBookBorrowFunc: func(ctx context.Context, bookID uuid.UUID) (database.BookBorrow, error) {
-				return database.BookBorrow{}, sql.ErrNoRows 
+				return database.BookBorrow{}, sql.ErrNoRows
 			},
 			IssueBookFunc: func(ctx context.Context, arg database.IssueBookParams) (database.BookBorrow, error) {
-				return database.BookBorrow{}, errors.New("simulated DB error on issue book") 
+				return database.BookBorrow{}, errors.New("simulated DB error on issue book")
 			},
 		}
 
@@ -268,7 +273,6 @@ func TestIssueBook(tTesting *testing.T) {
 	})
 }
 
-
 func TestReturnBook(tTesting *testing.T) {
 	borrowerID := newTestUserID()
 	bookID := uuid.New()
@@ -277,10 +281,12 @@ func TestReturnBook(tTesting *testing.T) {
 	returnedBorrow.ReturnedAt.Valid = true
 	returnedBorrow.ReturnedAt.Time = time.Now()
 
+	base := common.NewBaseMock()
+
 	// 1. Success: book is successfully returned.
 	tTesting.Run("Success", func(t *testing.T) {
 		mockQueries := &MockQueries{
-			BaseMock: common.NewBaseMock(),
+			BaseMock: base,
 			ReturnBookFunc: func(ctx context.Context, arg database.ReturnBookParams) (database.BookBorrow, error) {
 				if arg.ID != testBorrowID || arg.BorrowerID != borrowerID {
 					t.Fatalf("ReturnBook called with wrong IDs")
@@ -305,7 +311,7 @@ func TestReturnBook(tTesting *testing.T) {
 
 	// 2. Failure: invalid borrow ID format
 	tTesting.Run("InvalidBorrowIDFormat", func(t *testing.T) {
-		mockQueries := &MockQueries{BaseMock: common.NewBaseMock()}
+		mockQueries := &MockQueries{BaseMock: base}
 		apiConfig := BookBorrowAPIConfig{APIConfig: common.APIConfig{DB: mockQueries}}
 
 		request := httptest.NewRequest(http.MethodPatch, "/api/v1/book_borrows/return/not-a-uuid", nil)
@@ -323,7 +329,7 @@ func TestReturnBook(tTesting *testing.T) {
 	// 3. Failure: not found, unauthorized, or already returned (sql.ErrNoRows)
 	tTesting.Run("NotFoundOrUnauthorized", func(t *testing.T) {
 		mockQueries := &MockQueries{
-			BaseMock: common.NewBaseMock(),
+			BaseMock: base,
 			ReturnBookFunc: func(ctx context.Context, arg database.ReturnBookParams) (database.BookBorrow, error) {
 				return database.BookBorrow{}, sql.ErrNoRows
 			},
@@ -347,7 +353,7 @@ func TestReturnBook(tTesting *testing.T) {
 	// 4. Failure: Internal Error on ReturnBook
 	tTesting.Run("ReturnBookDBError", func(t *testing.T) {
 		mockQueries := &MockQueries{
-			BaseMock: common.NewBaseMock(),
+			BaseMock: base,
 			ReturnBookFunc: func(ctx context.Context, arg database.ReturnBookParams) (database.BookBorrow, error) {
 				return database.BookBorrow{}, errors.New("simulated DB error on return book") // DB error
 			},

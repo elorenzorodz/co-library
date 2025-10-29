@@ -17,8 +17,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-
-
 type MockQueries struct {
     *common.BaseMock
 
@@ -242,7 +240,7 @@ GEPIHTMy6cJHSf+xLGKcIp40vHg1A9Rg8GeWhax4bIghE3cuKj5RNyQc
 		mockQueries := &MockQueries{
 			BaseMock: common.NewBaseMock(),
 			GetUserByEmailFunc: func(ctx context.Context, email string) (database.User, error) {
-				return testUser, nil // User is found
+				return testUser, nil 
 			},
 		}
 
@@ -251,7 +249,7 @@ GEPIHTMy6cJHSf+xLGKcIp40vHg1A9Rg8GeWhax4bIghE3cuKj5RNyQc
 		requestBody, _ := json.Marshal(struct {
 			Email    string `json:"email"`
 			Password string `json:"password"`
-		}{Email: testUser.Email, Password: "WrongPassword456"}) // Wrong password
+		}{Email: testUser.Email, Password: "WrongPassword456"}) 
 
 		request := httptest.NewRequest(http.MethodPost, "/api/v1/user/login", bytes.NewBuffer(requestBody))
 		recorder := httptest.NewRecorder()
