@@ -331,3 +331,139 @@ func TestDeleteUserSubscriber(tTesting *testing.T) {
 		}
 	})
 }
+
+func TestGetUserSubscribers(tTesting *testing.T) {
+	userID := newTestUserID()
+	subscribers := []database.UserSubscriber{
+		newTestUserSubscriber(userID, newTestUserID()),
+		newTestUserSubscriber(userID, newTestUserID()),
+	}
+
+	// 1. Success: returns a list of followers.
+	tTesting.Run("SuccessNonEmptyList", func(t *testing.T) {
+		mockDB := &MockUserSubscribersDB{
+			BaseMock: common.NewBaseMock(),
+			GetUserSubscribersFunc: func(ctx context.Context, id uuid.UUID) ([]database.UserSubscriber, error) {
+				return subscribers, nil
+			},
+		}
+
+		apiConfig := UserSubscriberAPIConfig{APIConfig: common.APIConfig{DB: mockDB}}
+		request := httptest.NewRequest(http.MethodGet, "/api/v1/subscribers/followers", nil)
+		recorder := httptest.NewRecorder()
+
+		apiConfig.GetUserSubscribers(recorder, request, userID)
+
+		if recorder.Code != http.StatusOK {
+			t.Errorf("Expected status %d, got %d. Body: %s", http.StatusOK, recorder.Code, recorder.Body.String())
+		}
+	})
+
+	// 2. Success: No subscribers found (sql.ErrNoRows).
+	tTesting.Run("SuccessEmptyList", func(t *testing.T) {
+		mockDB := &MockUserSubscribersDB{
+			BaseMock: common.NewBaseMock(),
+			GetUserSubscribersFunc: func(ctx context.Context, id uuid.UUID) ([]database.UserSubscriber, error) {
+				return nil, sql.ErrNoRows
+			},
+		}
+
+		apiConfig := UserSubscriberAPIConfig{APIConfig: common.APIConfig{DB: mockDB}}
+		request := httptest.NewRequest(http.MethodGet, "/api/v1/subscribers/followers", nil)
+		recorder := httptest.NewRecorder()
+
+		apiConfig.GetUserSubscribers(recorder, request, userID)
+
+		if recorder.Code != http.StatusOK {
+			t.Errorf("Expected status %d, got %d. Body: %s", http.StatusOK, recorder.Code, recorder.Body.String())
+		}
+	})
+
+	// 3. Failure: internal DB error.
+	tTesting.Run("DBError", func(t *testing.T) {
+		mockDB := &MockUserSubscribersDB{
+			BaseMock: common.NewBaseMock(),
+			GetUserSubscribersFunc: func(ctx context.Context, id uuid.UUID) ([]database.UserSubscriber, error) {
+				return nil, errors.New("simulated DB error on get subscribers")
+			},
+		}
+
+		apiConfig := UserSubscriberAPIConfig{APIConfig: common.APIConfig{DB: mockDB}}
+		request := httptest.NewRequest(http.MethodGet, "/api/v1/subscribers/followers", nil)
+		recorder := httptest.NewRecorder()
+
+		apiConfig.GetUserSubscribers(recorder, request, userID)
+
+		if recorder.Code != http.StatusInternalServerError {
+			t.Errorf("Expected status %d, got %d. Body: %s", http.StatusInternalServerError, recorder.Code, recorder.Body.String())
+		}
+	})
+}
+
+func TestGetUserSubscriptions(tTesting *testing.T) {
+	subscriberID := newTestUserID()
+	subscriptions := []database.UserSubscriber{
+		newTestUserSubscriber(newTestUserID(), subscriberID),
+		newTestUserSubscriber(newTestUserID(), subscriberID),
+	}
+
+	// 1. Success: Returns a list of subscriptions (users the current user is following).
+	tTesting.Run("SuccessNonEmptyList", func(t *testing.T) {
+		mockDB := &MockUserSubscribersDB{
+			BaseMock: common.NewBaseMock(),
+			GetUserSubscriptionsFunc: func(ctx context.Context, id uuid.UUID) ([]database.UserSubscriber, error) {
+				return subscriptions, nil
+			},
+		}
+
+		apiConfig := UserSubscriberAPIConfig{APIConfig: common.APIConfig{DB: mockDB}}
+		request := httptest.NewRequest(http.MethodGet, "/api/v1/subscribers/following", nil)
+		recorder := httptest.NewRecorder()
+
+		apiConfig.GetUserSubscriptions(recorder, request, subscriberID)
+
+		if recorder.Code != http.StatusOK {
+			t.Errorf("Expected status %d, got %d. Body: %s", http.StatusOK, recorder.Code, recorder.Body.String())
+		}
+	})
+
+	// 2. Success: No subscriptions found (sql.ErrNoRows).
+	tTesting.Run("SuccessEmptyList", func(t *testing.T) {
+		mockDB := &MockUserSubscribersDB{
+			BaseMock: common.NewBaseMock(),
+			GetUserSubscriptionsFunc: func(ctx context.Context, id uuid.UUID) ([]database.UserSubscriber, error) {
+				return nil, sql.ErrNoRows
+			},
+		}
+
+		apiConfig := UserSubscriberAPIConfig{APIConfig: common.APIConfig{DB: mockDB}}
+		request := httptest.NewRequest(http.MethodGet, "/api/v1/subscribers/following", nil)
+		recorder := httptest.NewRecorder()
+
+		apiConfig.GetUserSubscriptions(recorder, request, subscriberID)
+
+		if recorder.Code != http.StatusOK {
+			t.Errorf("Expected status %d, got %d. Body: %s", http.StatusOK, recorder.Code, recorder.Body.String())
+		}
+	})
+
+	// 3. Failure: internal DB error.
+	tTesting.Run("DBError", func(t *testing.T) {
+		mockDB := &MockUserSubscribersDB{
+			BaseMock: common.NewBaseMock(),
+			GetUserSubscriptionsFunc: func(ctx context.Context, id uuid.UUID) ([]database.UserSubscriber, error) {
+				return nil, errors.New("simulated DB error on get subscriptions")
+			},
+		}
+
+		apiConfig := UserSubscriberAPIConfig{APIConfig: common.APIConfig{DB: mockDB}}
+		request := httptest.NewRequest(http.MethodGet, "/api/v1/subscribers/following", nil)
+		recorder := httptest.NewRecorder()
+
+		apiConfig.GetUserSubscriptions(recorder, request, subscriberID)
+
+		if recorder.Code != http.StatusInternalServerError {
+			t.Errorf("Expected status %d, got %d. Body: %s", http.StatusInternalServerError, recorder.Code, recorder.Body.String())
+		}
+	})
+}
